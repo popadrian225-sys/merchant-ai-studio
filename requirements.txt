@@ -1,0 +1,10 @@
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart
+pillow
+edge-tts
+segno>=1.6
+imageio-ffmpeg
+
+# 可选：装了它卡片出图走浏览器渲染，质感更好；没装自动降级为纯 PIL 渲染
+# playwright>=1.40

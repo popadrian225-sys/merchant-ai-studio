@@ -1,0 +1,38 @@
+{
+  "id": "cover-compare",
+  "name": "对比封面",
+  "category": "小红书封面",
+  "desc": "上半下半对比式，反差感强，适合踩坑/推荐、改造前后类笔记",
+  "size": [1080, 1440],
+  "swatch": ["#37474F", "#ECEFF1"],
+  "fields": [
+    { "key": "title", "label": "主标题", "type": "text", "default": "同样的预算", "max": 10, "required": true },
+    { "key": "a_tag", "label": "左块标签", "type": "text", "default": "别这样", "max": 6 },
+    { "key": "a_desc", "label": "左块说明", "type": "text", "default": "把钱全砸装修\n开业即巅峰", "max": 30 },
+    { "key": "b_tag", "label": "右块标签", "type": "text", "default": "要这样", "max": 6 },
+    { "key": "b_desc", "label": "右块说明", "type": "text", "default": "七分给内容\n三分给门头", "max": 30 },
+    { "key": "shop", "label": "店名", "type": "text", "default": "", "max": 14 }
+  ],
+  "bg": { "type": "solid", "color": "#ECEFF1" },
+  "elements": [
+    { "type": "text", "key": "title", "x": 60, "y": 96, "w": 960, "h": 110,
+      "size": 82, "weight": "Black", "color": "#263238", "align": "center", "spacing": 3 },
+    { "type": "rect", "x": 80, "y": 260, "w": 440, "h": 880, "fill": "#546E7A", "radius": 28 },
+    { "type": "rect", "x": 560, "y": 260, "w": 440, "h": 880, "fill": "#FF8A3D", "radius": 28 },
+    { "type": "badge", "key": "a_tag", "x": 200, "y": 320, "w": 200, "size": 40, "weight": "Bold",
+      "fill": "#FFFFFF", "color": "#37474F", "pad": [24, 12], "align": "center" },
+    { "type": "badge", "key": "b_tag", "x": 680, "y": 320, "w": 200, "size": 40, "weight": "Bold",
+      "fill": "#FFFFFF", "color": "#C2571B", "pad": [24, 12], "align": "center" },
+    { "type": "text", "key": "a_desc", "x": 120, "y": 440, "w": 360, "h": 640,
+      "size": 54, "weight": "SemiBold", "color": "#FFFFFF", "align": "center", "valign": "middle", "lh": 1.5 },
+    { "type": "text", "key": "b_desc", "x": 600, "y": 440, "w": 360, "h": 640,
+      "size": 54, "weight": "SemiBold", "color": "#FFFFFF", "align": "center", "valign": "middle", "lh": 1.5 },
+    { "type": "circle", "x": 540, "y": 700, "r": 74, "fill": "#263238" },
+    { "type": "text", "text": "VS", "x": 506, "y": 664, "w": 68, "h": 72,
+      "size": 54, "weight": "Black", "color": "#FFFFFF", "align": "center", "spacing": 2 },
+    { "type": "text", "key": "shop", "x": 60, "y": 1210, "w": 960, "h": 60,
+      "size": 38, "weight": "Medium", "color": "#607D8B", "align": "center", "spacing": 3 },
+    { "type": "badge", "text": "右滑看怎么改", "x": 360, "y": 1290, "w": 360, "size": 30, "weight": "Medium",
+      "fill": "#263238", "color": "#ECEFF1", "pad": [30, 12], "align": "center" }
+  ]
+}

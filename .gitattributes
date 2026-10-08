@@ -1,0 +1,16 @@
+# 仓库内统一 LF，避免跨系统整文件 diff
+* text=auto eol=lf
+
+# 二进制不做转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.mp4 binary
+*.mp3 binary
+*.ttf binary
+*.otf binary
+*.db binary
+*.zip binary
+*.ico binary

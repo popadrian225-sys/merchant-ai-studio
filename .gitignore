@@ -1,0 +1,22 @@
+# 运行产物
+__pycache__/
+*.py[cod]
+server.log
+*.zip
+
+# 环境 / 编辑器
+.venv/
+venv/
+.idea/
+.vscode/
+.DS_Store
+
+# 本地配置与运行时数据（不入库：含密钥、客户数据、生成产物）
+app/config.json
+app/data.db
+app/cards/
+app/storage/
+app/licenses_seed.json
+.dev.vars
+
+# 演示数据用 `python tools/seed_demo.py` 一键重建

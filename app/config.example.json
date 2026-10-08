@@ -1,0 +1,7 @@
+{
+  "moonshot_api_key": "sk-把这里换成你自己的 Kimi key（platform.moonshot.cn 申请）",
+  "base_url": "https://api.moonshot.cn/v1",
+  "model": "kimi-k2.6",
+  "timeout_sec": 300,
+  "admin_token": "自拟一串随机字符，激活码管理接口用，例如 adm_2f8c1d4b9a7e"
+}

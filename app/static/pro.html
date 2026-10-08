@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小商户内容助手 · MVP 演示</title>
+<style>
+  :root{
+    --bg:#f7f7f5; --card:#fff; --line:#e6e4df; --ink:#23211e; --ink-2:#6b6862; --ink-3:#96938c;
+    --accent:#2f6f5e; --accent-soft:#e8f1ee; --amber:#b45309; --amber-soft:#fdf3e3;
+    --red:#c0392b; --red-soft:#fdecea; --green:#2f855a; --green-soft:#e8f5ee;
+    --radius:12px; --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.65 "PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:14px 24px;
+    display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10}
+  header h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.2px}
+  header .tag{font-size:12px;color:var(--ink-3);border:1px solid var(--line);border-radius:99px;padding:1px 9px}
+  header .quota{margin-left:auto;font-size:13px;color:var(--ink-2)}
+  .wrap{max-width:1120px;margin:22px auto 60px;padding:0 20px;display:grid;grid-template-columns:320px 1fr;gap:20px}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .card h2{font-size:14px;margin:0 0 12px;font-weight:600;color:var(--ink-2);letter-spacing:.3px}
+  label{display:block;font-size:13px;color:var(--ink-2);margin:10px 0 4px}
+  input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+    font:inherit;font-size:14px;background:#fcfcfb;color:var(--ink);outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);background:#fff}
+  textarea{resize:vertical;min-height:64px}
+  .row{display:flex;gap:10px}.row>*{flex:1}
+  button{font:inherit;font-size:14px;padding:9px 16px;border-radius:9px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);cursor:pointer;transition:.15s}
+  button:hover{border-color:var(--ink-3)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.mini{padding:4px 10px;font-size:12.5px;border-radius:7px}
+  .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:16px}
+  .tabs button{border:none;border-radius:0;background:none;padding:8px 4px;margin-right:14px;
+    color:var(--ink-3);border-bottom:2px solid transparent;font-weight:500}
+  .tabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .hide{display:none!important}
+  .hint{font-size:12.5px;color:var(--ink-3);margin-top:6px;line-height:1.5}
+  .pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+  .title-opt{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:.15s}
+  .title-opt:hover{border-color:var(--accent)}
+  .title-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+  .title-opt .txt{font-weight:500}
+  .title-opt .idx{font-size:11.5px;color:var(--ink-3);margin-right:6px}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .tags span{font-size:12.5px;background:#f1f0ec;border-radius:6px;padding:3px 8px;color:var(--ink-2)}
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+  .mini-card{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fcfcfb;min-height:104px;
+    display:flex;flex-direction:column;gap:6px}
+  .mini-card .type{font-size:11px;letter-spacing:.5px;color:var(--ink-3);text-transform:uppercase}
+  .mini-card .body{font-size:13.5px;white-space:pre-wrap}
+  .verdict{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius);margin-bottom:14px}
+  .verdict .dot{width:14px;height:14px;border-radius:50%;flex:none}
+  .verdict.pass{background:var(--green-soft);color:var(--green)}
+  .verdict.warn{background:var(--amber-soft);color:var(--amber)}
+  .verdict.fail{background:var(--red-soft);color:var(--red)}
+  .verdict .dot.pass{background:var(--green)}.verdict .dot.warn{background:var(--amber)}.verdict .dot.fail{background:var(--red)}
+  .verdict b{font-size:15px}
+  .issue{border:1px solid var(--line);border-left:3px solid var(--ink-3);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+  .issue.high{border-left-color:var(--red)}.issue.medium{border-left-color:var(--amber)}.issue.low{border-left-color:var(--ink-3)}
+  .issue .head{display:flex;gap:8px;align-items:center;font-size:13px}
+  .issue .sev{font-size:11.5px;padding:1px 7px;border-radius:99px;background:#f1f0ec;color:var(--ink-2)}
+  .issue .sev.high{background:var(--red-soft);color:var(--red)}
+  .issue .sev.medium{background:var(--amber-soft);color:var(--amber)}
+  .issue q{display:block;margin:6px 0;padding-left:8px;border-left:2px solid var(--line);color:var(--ink-2);font-size:13px}
+  .issue .why,.issue .fix{font-size:13px;color:var(--ink-2);margin-top:4px}
+  .issue .fix{color:var(--accent)}
+  .dim{display:flex;align-items:center;gap:10px;font-size:13.5px;margin:7px 0}
+  .dim .name{width:76px;color:var(--ink-2);flex:none}
+  .bar{flex:1;height:7px;background:#f1f0ec;border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--accent)}
+  .dim .num{width:32px;text-align:right;color:var(--ink-3);font-size:12.5px}
+  .fade{animation:fi .25s ease}@keyframes fi{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+  .empty{color:var(--ink-3);font-size:13.5px;padding:18px 0;text-align:center}
+  .log{font-size:12.5px;color:var(--ink-3);margin-top:10px;min-height:18px}
+  .hist{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+  .hist:hover{border-color:var(--accent)}
+  .hist .t{font-size:14px;font-weight:500}.hist .m{font-size:12px;color:var(--ink-3);margin-top:2px}
+  .spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.45);
+    border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .kimi{background:#fbfbfa;border:1px dashed var(--line);border-radius:9px;padding:10px 12px;margin-top:12px;font-size:13.5px}
+</style>
+</head>
+<body>
+<header>
+  <h1>小商户内容助手</h1>
+  <span class="tag">专业模式</span>
+  <a href="/" style="font-size:13px;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:5px 12px">← 回到简单模式</a>
+  <span class="quota" id="quota">未选择商户</span>
+</header>
+
+<div class="wrap">
+  <!-- 左栏：商户 -->
+  <div>
+    <div class="card">
+      <h2>商户档案</h2>
+      <select id="profileSel"><option value="">— 新建商户 —</option></select>
+      <div id="newProfile">
+        <label>商户名称</label>
+        <input id="pName" placeholder="如：阿珍肠粉店">
+        <div class="row">
+          <div><label>品类</label>
+            <select id="pCategory"><option>餐饮</option><option>幼教</option><option>其他</option></select></div>
+          <div><label>平台</label>
+            <select id="pPlatform"><option value="xiaohongshu">小红书</option><option value="douyin">抖音</option><option value="generic">通用</option></select></div>
+        </div>
+        <label>账号定位</label><input id="pPositioning" placeholder="老广街坊早餐店">
+        <label>目标受众</label><input id="pAudience" placeholder="门店 3km 内街坊与上班族">
+        <label>内容调性</label><input id="pTone" placeholder="街坊闺蜜感 / 专业干货">
+        <label>运营目标</label><input id="pGoals" placeholder="到店引流 / 招生咨询">
+        <label>内容支柱（逗号分隔）</label><input id="pPillars" placeholder="招牌肠粉,店家故事,优惠活动,食客互动">
+        <label>雷区（逗号分隔，绝不出现）</label><input id="pTaboo" placeholder="不贬低竞品,不承诺治病功效">
+        <div class="row" style="margin-top:14px">
+          <button class="primary" id="btnSaveProfile">保存档案</button>
+          <button id="btnDemo">填入示例</button>
+        </div>
+        <div class="hint">档案对应 Easel 的账号画像（六维字段），会注入每次生成的 prompt。</div>
+      </div>
+      <div id="profileView" class="hide"></div>
+    </div>
+  </div>
+
+  <!-- 右栏：工作区 -->
+  <div class="card">
+    <div class="tabs">
+      <button data-tab="plan" class="on">① 今天发什么</button>
+      <button data-tab="gen">② 生成笔记</button>
+      <button data-tab="check">③ 发布前质检</button>
+      <button data-tab="rep">④ 一稿多发</button>
+      <button data-tab="cal">⑤ 排期表</button>
+      <button data-tab="hist">⑥ 历史</button>
+    </div>
+
+    <!-- 今天发什么 -->
+    <section id="tab-plan">
+      <div class="row" style="margin-bottom:10px">
+        <div><label>选题数量</label>
+          <select id="planCount"><option>6</option><option selected>8</option><option>10</option></select></div>
+        <div><label>本周上下文（可选）</label><input id="planContext" placeholder="如：周五到货车厘子 / 六一儿童节 / 台风天"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="primary" id="btnPlan">生成选题池并评分</button>
+        <span class="hint" style="margin:0">内容支柱 × 蹭点选题，七维口径快评排序（Easel scoring-dimensions 移植）</span>
+      </div>
+      <div class="log" id="planLog"></div>
+      <div id="planOut"><div class="empty">先选择商户档案，点上方按钮生成</div></div>
+    </section>
+
+    <!-- 生成 -->
+    <section id="tab-gen" class="hide">
+      <label>今天想发什么？（菜品 / 活动 / 事件）</label>
+      <textarea id="topic" placeholder="例：新品虾仁肠粉上市，早市 7 点开卖"></textarea>
+      <div class="row" style="margin-top:10px">
+        <div><label>卡片数量</label>
+          <select id="cardCount"><option>4</option><option selected>6</option><option>7</option><option>9</option></select></div>
+        <div><label>补充素材（可选）</label><input id="material" placeholder="有实拍图/活动细则就写这里"></div>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;align-items:center">
+        <button class="primary" id="btnGen">生成小红书笔记</button>
+        <span class="hint" style="margin:0">走 xhs-note-creator 模板（含去 AI 味 + 标题公式）</span>
+      </div>
+      <div class="log" id="genLog"></div>
+      <div id="genOut"></div>
+    </section>
+
+    <!-- 质检 -->
+    <section id="tab-check" class="hide">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="primary" id="btnCheck">质检当前生成结果</button>
+        <span class="hint" style="margin:0">合规 + 质量双把关，输出红黄绿灯</span>
+      </div>
+      <div class="log" id="checkLog"></div>
+      <div id="checkOut"><div class="empty">先生成一条笔记，再回来做质检</div></div>
+    </section>
+
+    <!-- 一稿多发 -->
+    <section id="tab-rep" class="hide">
+      <label>源内容</label>
+      <select id="repSource"><option value="">— 当前生成结果 —</option></select>
+      <div class="row" style="margin-top:12px;align-items:end">
+        <div>
+          <label>目标平台</label>
+          <div style="display:flex;gap:14px;font-size:14px;padding:8px 2px">
+            <label style="margin:0"><input type="checkbox" id="tDouyin" checked style="width:auto"> 抖音口播稿</label>
+            <label style="margin:0"><input type="checkbox" id="tWechat" checked style="width:auto"> 公众号短文</label>
+            <label style="margin:0"><input type="checkbox" id="tWeibo" checked style="width:auto"> 微博短博</label>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:10px;align-items:center">
+        <button class="primary" id="btnRep">改编到所选平台</button>
+        <span class="hint" style="margin:0">平台原生改写，不是复制粘贴（Easel content-repurposing 移植）</span>
+      </div>
+      <div class="log" id="repLog"></div>
+      <div id="repOut"></div>
+    </section>
+
+    <!-- 排期表 -->
+    <section id="tab-cal" class="hide">
+      <div class="row" style="margin-bottom:10px">
+        <div><label>发布频率</label>
+          <select id="calFreq"><option>每周 2 条</option><option selected>每周 3 条</option><option>每周 4 条</option></select></div>
+        <div><label>本月目标</label>
+          <select id="calGoal"><option selected>到店引流</option><option>促转化</option><option>涨曝光</option><option>社区互动</option></select></div>
+        <div><label>本月活动/节点（可选）</label><input id="calContext" placeholder="如：端午 / 新店开业 / 会员日"></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <button class="primary" id="btnCal">生成月度排期表</button>
+        <span class="hint" style="margin:0">4 周排期：活动帖先锁、推广 ≤20%、支柱均匀分布</span>
+      </div>
+      <div class="log" id="calLog"></div>
+      <div id="calOut"></div>
+    </section>
+
+    <!-- 历史 -->
+    <section id="tab-hist" class="hide">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <button class="mini" id="btnReloadHist">刷新</button>
+        <span class="hint" style="margin:0">当前商户的生成记录，点击可载入回看</span>
+      </div>
+      <div id="histOut"><div class="empty">还没有记录</div></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const API = location.origin;
+let currentProfile = null, currentNote = null, currentContentId = null;
+
+async function api(path, opts){
+  const r = await fetch(API + path, Object.assign({headers:{'content-type':'application/json'}}, opts));
+  const j = await r.json().catch(()=>({ok:false,error:'返回不是 JSON'}));
+  if(!r.ok || j.ok === false) throw new Error(j.error || ('HTTP ' + r.status));
+  return j;
+}
+const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---- 商户 ---- */
+async function loadProfiles(){
+  const {profiles} = await api('/api/profiles');
+  const sel = $('#profileSel');
+  sel.innerHTML = '<option value="">— 新建商户 —</option>' +
+    profiles.map(p => `<option value="${p.id}">${esc(p.name)} · ${esc(p.category)}</option>`).join('');
+  if(profiles.length){ sel.value = profiles[0].id; await selectProfile(profiles[0].id); }
+}
+async function selectProfile(id){
+  if(!id){ currentProfile = null; $('#newProfile').classList.remove('hide'); $('#profileView').classList.add('hide');
+    $('#quota').textContent = '未选择商户'; return; }
+  const {profile} = await api('/api/profiles/' + id);
+  currentProfile = profile;
+  $('#newProfile').classList.add('hide');
+  $('#quota').textContent = `${profile.name} · 剩余额度 ${profile.quota_left} 次`;
+  $('#profileView').classList.remove('hide');
+  $('#profileView').innerHTML = `
+    <div style="font-size:15px;font-weight:600">${esc(profile.name)}</div>
+    <div class="hint">${esc(profile.category)} · ${esc(profile.platform)}</div>
+    <div style="margin-top:10px;font-size:13.5px;line-height:1.8;color:var(--ink-2)">
+      <div>定位：${esc(profile.positioning || '—')}</div>
+      <div>受众：${esc(profile.audience || '—')}</div>
+      <div>调性：${esc(profile.tone || '—')}</div>
+      <div>目标：${esc(profile.goals || '—')}</div>
+      <div>支柱：${esc((profile.pillars||[]).join('、') || '—')}</div>
+      <div>雷区：${esc((profile.taboo||[]).join('、') || '—')}</div>
+    </div>
+    <button class="mini" style="margin-top:12px" onclick="resetForm()">改用新商户</button>`;
+}
+function resetForm(){
+  $('#profileSel').value = ''; currentProfile = null;
+  $('#newProfile').classList.remove('hide'); $('#profileView').classList.add('hide');
+  $('#quota').textContent = '未选择商户';
+}
+$('#profileSel').addEventListener('change', e => selectProfile(e.target.value));
+$('#btnDemo').addEventListener('click', () => {
+  $('#pName').value='阿珍肠粉店'; $('#pCategory').value='餐饮'; $('#pPlatform').value='xiaohongshu';
+  $('#pPositioning').value='老广街坊早餐店，开了 12 年';
+  $('#pAudience').value='门店 3km 内街坊与上班族，25-45 岁';
+  $('#pTone').value='街坊闺蜜感，实在不浮夸';
+  $('#pGoals').value='到店引流，工作日上午客流';
+  $('#pPillars').value='招牌肠粉,店家故事,优惠活动,食客互动';
+  $('#pTaboo').value='不贬低竞品,不承诺治病功效';
+});
+$('#btnSaveProfile').addEventListener('click', async () => {
+  const name = $('#pName').value.trim();
+  if(!name) return alert('请填商户名称');
+  const split = v => v.split(/[,，]/).map(s=>s.trim()).filter(Boolean);
+  try{
+    const j = await api('/api/profiles', {method:'POST', body: JSON.stringify({
+      name, category:$('#pCategory').value, platform:$('#pPlatform').value,
+      positioning:$('#pPositioning').value, audience:$('#pAudience').value,
+      tone:$('#pTone').value, goals:$('#pGoals').value,
+      pillars: split($('#pPillars').value), taboo: split($('#pTaboo').value)})});
+    await loadProfiles();
+    $('#profileSel').value = j.id; await selectProfile(j.id);
+  }catch(e){ alert('保存失败：' + e.message); }
+});
+
+/* ---- 今天发什么 ---- */
+const DIMS = [
+  ['traffic','流量潜力'],['fit','账号匹配'],['differentiation','差异化'],
+  ['timeliness','时效'],['monetization','变现'],['cost','成本↓'],['compliance','合规↓'],
+];
+$('#btnPlan').addEventListener('click', async () => {
+  if(!currentProfile) return alert('请先选择或创建商户档案');
+  const btn = $('#btnPlan'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>策划中…';
+  $('#planLog').textContent = '正在生成选题池并做七维评分（约 1-2 分钟）…';
+  try{
+    const j = await api('/api/topic-plan', {method:'POST', body: JSON.stringify({
+      merchant_id: currentProfile.id, count: +$('#planCount').value, context: $('#planContext').value})});
+    $('#planLog').textContent = j.usage?.total_tokens ? `完成 · ${j.topics.length} 个选题 · 消耗 ${j.usage.total_tokens} tokens` : '完成';
+    renderPlan(j.topics);
+  }catch(e){ $('#planLog').textContent = '生成失败：' + e.message; }
+  finally{ btn.disabled = false; btn.textContent = '生成选题池并评分'; }
+});
+
+function renderPlan(topics){
+  $('#planOut').innerHTML = topics.map((t, i) => `
+    <div class="fade topic-item" style="border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;gap:10px;align-items:baseline">
+        <span style="font-size:12px;color:var(--ink-3);flex:none">#${i+1}</span>
+        <span style="font-weight:600;font-size:14.5px;flex:1">${esc(t.topic)}</span>
+        <span class="pill" style="flex:none">${(+t.total).toFixed(1)} 分</span>
+      </div>
+      <div style="font-size:13px;color:var(--ink-2);margin-top:4px">
+        ${esc(t.angle || '')} <span class="pill" style="margin-left:6px">${esc(t.format || '图文')}</span>
+      </div>
+      <div class="tags" style="margin-top:8px">
+        ${DIMS.map(([k, name]) => `<span title="${name} ${(+((t.dimensions||{})[k])||0)}/10">${name} ${(+((t.dimensions||{})[k])||0)}</span>`).join('')}
+      </div>
+      ${t.comment ? `<div class="hint" style="margin-top:6px">${esc(t.comment)}</div>` : ''}
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="mini primary" data-topic="${esc(t.topic)}">用这个选题写笔记 →</button>
+      </div>
+    </div>`).join('');
+  $('#planOut').querySelectorAll('button[data-topic]').forEach(b => b.addEventListener('click', () => {
+    $('#topic').value = b.dataset.topic;
+    switchTab('gen');
+    $('#genLog').textContent = '已带入选题，可补充素材后点生成';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }));
+}
+
+/* ---- 生成 ---- */
+$('#btnGen').addEventListener('click', async () => {
+  const topic = $('#topic').value.trim();
+  if(!topic) return alert('请填想发的内容主题');
+  const btn = $('#btnGen'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>生成中…';
+  $('#genLog').textContent = '正在调用 Kimi（约 20-60 秒）…';
+  try{
+    const j = await api('/api/notes', {method:'POST', body: JSON.stringify({
+      merchant_id: currentProfile?.id || null, topic,
+      card_count: +$('#cardCount').value, material: $('#material').value,
+      category: currentProfile?.category || '餐饮'})});
+    currentNote = j.note; currentContentId = j.content_id;
+    $('#genLog').textContent = `已生成，内容 ID ${j.content_id}`
+      + (j.usage?.total_tokens ? ` · 消耗 ${j.usage.total_tokens} tokens` : '');
+    renderNote(j.note);
+    if(currentProfile) await selectProfile(currentProfile.id);
+    $('#checkOut').innerHTML = '<div class="empty">点上方按钮对这条笔记做发布前质检</div>';
+  }catch(e){ $('#genLog').textContent = '生成失败：' + e.message; }
+  finally{ btn.disabled = false; btn.textContent = '生成小红书笔记'; }
+});
+
+function renderNote(n){
+  const titles = (n.titles||[]).map((t,i) =>
+    `<div class="title-opt ${i===0?'on':''}" data-t="${esc(t)}"><span class="idx">${i+1}</span><span class="txt">${esc(t)}</span></div>`).join('');
+  const tags = (n.hashtags||[]).map(t => `<span>#${esc(String(t).replace(/^#/,''))}</span>`).join('');
+  const cards = (n.cards||[]).map(c => `<div class="mini-card"><span class="type">${esc(c.type)}</span>
+      <span class="body">${esc(c.text)}</span></div>`).join('');
+  const imgs = (n.image_suggestions||[]).map(s => `<li>${esc(s)}</li>`).join('');
+  $('#genOut').innerHTML = `
+    <div class="fade" style="margin-top:16px">
+      <h2 style="font-size:13px;color:var(--ink-2);margin:0 0 8px">标题候选（点选一个）</h2>${titles}
+      <h2 style="font-size:13px;color:var(--ink-2);margin:16px 0 6px">正文 caption</h2>
+      <div class="kimi" id="caption">${esc(n.caption||'')}</div>
+      <div class="tags">${tags}</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="mini" id="btnCopy">复制文案（标题+正文+标签）</button>
+      </div>
+      <h2 style="font-size:13px;color:var(--ink-2);margin:18px 0 6px">图文卡片（${(n.cards||[]).length} 张）</h2>
+      <div class="cards-grid">${cards}</div>
+      <div style="margin-top:14px;padding:12px;border:1px dashed var(--line);border-radius:10px;background:#fcfcfb">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <select id="cardStyle" style="width:auto">
+            <option value="cream">奶油温柔</option>
+            <option value="swiss">瑞士极简</option>
+            <option value="journal">手账贴纸</option>
+          </select>
+          <button class="primary mini" id="btnRender" style="font-size:13px;padding:7px 14px">渲染卡片图（1080×1440，可直接发）</button>
+          <span class="hint" style="margin:0" id="renderHint">无需 AI，本地秒出图</span>
+        </div>
+        <div id="renderOut" style="margin-top:10px"></div>
+      </div>
+      ${imgs ? `<h2 style="font-size:13px;color:var(--ink-2);margin:18px 0 6px">配图建议</h2><ul style="margin:0;padding-left:20px;font-size:13.5px;color:var(--ink-2)">${imgs}</ul>` : ''}
+    </div>`;
+  $('#genOut').querySelectorAll('.title-opt').forEach(el => el.addEventListener('click', () => {
+    $('#genOut').querySelectorAll('.title-opt').forEach(x=>x.classList.remove('on'));
+    el.classList.add('on');
+  }));
+  $('#btnRender')?.addEventListener('click', async () => {
+    if(!currentContentId) return alert('请先生成笔记');
+    const btn = $('#btnRender'); btn.disabled = true; btn.textContent = '渲染中…';
+    $('#renderHint').textContent = '';
+    try{
+      const j = await api('/api/render-cards', {method:'POST', body: JSON.stringify({
+        content_id: currentContentId, style: $('#cardStyle').value})});
+      $('#renderOut').innerHTML = `
+        <div class="fade" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px">
+          ${j.images.map(im => `
+            <div style="text-align:center">
+              <a href="${im.url}" target="_blank" title="点击看原图">
+                <img src="${im.url}" style="width:100%;border-radius:10px;border:1px solid var(--line);display:block">
+              </a>
+              <div style="font-size:11.5px;color:var(--ink-3);margin-top:4px">${esc(im.name)}${im.density_ok === false ? ' · ⚠️ 偏空' : ''}</div>
+            </div>`).join('')}
+        </div>`;
+      $('#renderHint').textContent = `已出 ${j.images.length} 张（${j.style_name}），点图看原图，右键另存即可发布`;
+      $('#renderOut').scrollIntoView({behavior:'smooth', block:'nearest'});
+    }catch(e){ $('#renderHint').textContent = '渲染失败：' + e.message; }
+    finally{ btn.disabled = false; btn.textContent = '渲染卡片图（1080×1440，可直接发）'; }
+  });
+  $('#btnCopy')?.addEventListener('click', async () => {
+    const t = $('#genOut .title-opt.on .txt')?.textContent || '';
+    const text = `${t}\n\n${n.caption||''}\n\n${(n.hashtags||[]).map(x=>'#'+String(x).replace(/^#/,'')).join(' ')}`;
+    try{ await navigator.clipboard.writeText(text); $('#btnCopy').textContent='已复制 ✓'; }
+    catch{ $('#btnCopy').textContent='复制失败，手动选择吧'; }
+  });
+}
+
+/* ---- 质检 ---- */
+$('#btnCheck').addEventListener('click', async () => {
+  if(!currentContentId && !currentNote) return alert('请先生成一条笔记');
+  const btn = $('#btnCheck'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>质检中…';
+  $('#checkLog').textContent = '正在做合规 + 质量双把关…';
+  try{
+    const j = await api('/api/quality-check', {method:'POST', body: JSON.stringify({
+      content_id: currentContentId || null,
+      content: currentContentId ? null : JSON.stringify(currentNote, null, 2),
+      platform: 'xiaohongshu', category: currentProfile?.category || '餐饮'})});
+    $('#checkLog').textContent = j.usage?.total_tokens ? `完成 · 消耗 ${j.usage.total_tokens} tokens` : '完成';
+    renderCheck(j.check);
+  }catch(e){ $('#checkLog').textContent = '质检失败：' + e.message; }
+  finally{ btn.disabled = false; btn.textContent = '质检当前生成结果'; }
+});
+
+const LABEL = {pass:'可发布', warn:'需修改', fail:'不达标'};
+const CNTYPE = {绝对化用语:'绝对化用语',虚假宣传:'虚假宣传',医疗违规:'医疗违规',违禁内容:'违禁内容',
+  导流外站:'导流外站',软广未标注:'软广未标注',限流风险:'限流风险',教育敏感:'教育敏感',版权风险:'版权风险'};
+
+function renderCheck(c){
+  const v = c.overall_verdict || 'warn';
+  const issues = (c.compliance?.issues||[]);
+  const dims = (c.quality?.dimensions||[]);
+  const avg = dims.length ? (dims.reduce((s,d)=>s+(+d.score||0),0)/dims.length) : 0;
+  $('#checkOut').innerHTML = `
+    <div class="fade" style="margin-top:14px">
+      <div class="verdict ${v}"><span class="dot ${v}"></span>
+        <div><b>${LABEL[v]||v}</b>
+          <div style="font-size:12.5px;opacity:.85">合规风险：${{low:'低',medium:'中',high:'高'}[c.risk_level]||c.risk_level||'—'}
+          · 质量均分 ${avg.toFixed(1)}/10 · 命中问题 ${issues.length} 条</div></div>
+      </div>
+      <h2 style="font-size:13px;color:var(--ink-2);margin:4px 0 8px">合规问题</h2>
+      ${issues.length ? issues.map(i => `
+        <div class="issue ${i.severity||'low'}">
+          <div class="head"><span class="sev ${i.severity||'low'}">${esc(({high:'高风险',medium:'中风险',low:'低风险'})[i.severity]||i.severity||'')}</span>
+            <b style="font-size:13.5px">${esc(CNTYPE[i.type]||i.type||'问题')}</b></div>
+          ${i.text ? `<q>${esc(i.text)}</q>` : ''}
+          ${i.reason ? `<div class="why">为什么：${esc(i.reason)}</div>` : ''}
+          ${i.suggestion ? `<div class="fix">改法：${esc(i.suggestion)}</div>` : ''}
+        </div>`).join('') : '<div class="hint">未发现合规问题</div>'}
+      <h2 style="font-size:13px;color:var(--ink-2);margin:16px 0 6px">质量维度</h2>
+      ${dims.map(d => `<div class="dim"><span class="name">${esc(d.name)}</span>
+        <span class="bar"><i style="width:${Math.min(100,(+d.score||0)*10)}%"></i></span>
+        <span class="num">${esc(d.score)}</span></div>`).join('') || '<div class="hint">—</div>'}
+      ${(c.top_fixes||[]).length ? `<h2 style="font-size:13px;color:var(--ink-2);margin:16px 0 6px">优先修改建议</h2>
+        <ol style="margin:0;padding-left:20px;font-size:13.5px;color:var(--ink-2)">${c.top_fixes.map(f=>`<li>${esc(f)}</li>`).join('')}</ol>` : ''}
+    </div>`;
+}
+
+/* ---- 一稿多发 ---- */
+const PLAT_NAME = {douyin:'抖音口播稿', wechat:'公众号短文', weibo:'微博短博'};
+$('#btnRep').addEventListener('click', async () => {
+  const targets = [['tDouyin','douyin'],['tWechat','wechat'],['tWeibo','weibo']]
+    .filter(([id]) => $('#' + id).checked).map(([,v]) => v);
+  if(!targets.length) return alert('至少选一个目标平台');
+  const useCurrent = !$('#repSource').value;
+  if(useCurrent && !currentContentId) return alert('当前没有生成结果，请先在②生成，或在下拉里选历史内容');
+  const btn = $('#btnRep'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>改编中…';
+  $('#repLog').textContent = '正在做平台原生改写…';
+  try{
+    const j = await api('/api/repurpose', {method:'POST', body: JSON.stringify({
+      content_id: useCurrent ? currentContentId : +$('#repSource').value,
+      content: useCurrent ? null : undefined,
+      merchant_id: currentProfile?.id || null, targets})});
+    renderRep(j.repurposed);
+    $('#repLog').textContent = j.usage?.total_tokens ? `完成 · 消耗 ${j.usage.total_tokens} tokens` : '完成';
+  }catch(e){ $('#repLog').textContent = '改编失败：' + e.message; }
+  finally{ btn.disabled = false; btn.textContent = '改编到所选平台'; }
+});
+
+function renderRep(r){
+  const pieces = (r.pieces||[]).map(p => `
+    <div class="fade" style="border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="pill" style="flex:none">${esc(PLAT_NAME[p.platform]||p.platform)}</span>
+        <b style="font-size:14px;flex:1">${esc(p.title||'')}</b>
+        <button class="mini" data-copy="${esc((p.title||'') + '\n\n' + (p.body||'') + ((p.hashtags&&p.hashtags.length)?'\n\n'+p.hashtags.map(x=>'#'+String(x).replace(/^#/,'')).join(' '):''))}">复制</button>
+      </div>
+      <div style="white-space:pre-wrap;font-size:13.5px;margin-top:8px;color:var(--ink)">${esc(p.body||'')}</div>
+      ${(p.hashtags&&p.hashtags.length)?`<div class="tags" style="margin-top:8px">${p.hashtags.map(h=>`<span>#${esc(String(h).replace(/^#/,''))}</span>`).join('')}</div>`:''}
+      ${p.post_tip?`<div class="hint" style="margin-top:6px">发布建议：${esc(p.post_tip)}</div>`:''}
+    </div>`).join('');
+  $('#repOut').innerHTML = `
+    ${r.core_message ? `<div class="kimi">核心信息（各平台一致）：${esc(r.core_message)}</div>` : ''}
+    ${pieces}`;
+  $('#repOut').querySelectorAll('button[data-copy]').forEach(b => b.addEventListener('click', async () => {
+    try{ await navigator.clipboard.writeText(b.dataset.copy); b.textContent='已复制 ✓'; }
+    catch{ b.textContent='复制失败'; }
+  }));
+}
+
+/* ---- 排期表 ---- */
+$('#btnCal').addEventListener('click', async () => {
+  if(!currentProfile) return alert('请先选择商户档案');
+  const btn = $('#btnCal'); btn.disabled = true; btn.innerHTML = '<span class="spin"></span>排期中…';
+  $('#calLog').textContent = '正在规划 4 周排期…';
+  try{
+    const j = await api('/api/calendar', {method:'POST', body: JSON.stringify({
+      merchant_id: currentProfile.id, frequency: $('#calFreq').value,
+      goal: $('#calGoal').value, context: $('#calContext').value})});
+    currentCalendar = j.calendar;
+    $('#calLog').textContent = j.usage?.total_tokens ? `完成 · ${j.usage?.total_tokens} tokens` : '完成';
+    renderCal(j.calendar);
+  }catch(e){ $('#calLog').textContent = '排期失败：' + e.message; }
+  finally{ btn.disabled = false; btn.textContent = '生成月度排期表'; }
+});
+
+let currentCalendar = null;
+function renderCal(c){
+  const rows = (c.schedule||[]).map((s, i) => `
+    <tr>
+      <td>W${esc(s.week)}</td><td>周${esc(s.weekday)}</td><td>${esc(s.platform||'')}</td>
+      <td>${esc(s.pillar||'')}</td><td>${esc(s.format||'')}</td>
+      <td><b>${esc(s.topic||'')}</b>${s.angle?`<div style="font-size:12.5px;color:var(--ink-2);margin-top:2px">${esc(s.angle)}</div>`:''}
+      ${s.visual?`<div style="font-size:12px;color:var(--ink-3);margin-top:2px">画面：${esc(s.visual)}</div>`:''}</td>
+    </tr>`).join('');
+  $('#calOut').innerHTML = `
+    <div class="fade" style="margin-top:14px;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead><tr style="text-align:left;color:var(--ink-2);border-bottom:1px solid var(--line)">
+          <th style="padding:6px 8px">周</th><th style="padding:6px 8px">日</th><th style="padding:6px 8px">平台</th>
+          <th style="padding:6px 8px">支柱</th><th style="padding:6px 8px">形式</th><th style="padding:6px 8px">选题与角度</th>
+        </tr></thead><tbody>${rows}</tbody>
+      </table>
+      ${c.summary ? `<div class="kimi">${esc(`共 ${c.summary.total_posts ?? (c.schedule||[]).length} 条 · 推广占比 ${c.summary.promo_ratio || '—'} · ${c.summary.reminder || ''}`)}</div>` : ''}
+      <div style="margin-top:10px"><button class="mini" id="btnCalMd">导出 Markdown</button></div>
+    </div>`;
+  $('#btnCalMd').addEventListener('click', () => {
+    let md = '# 月度内容排期表\n\n| # | 周 | 日 | 平台 | 支柱 | 形式 | 选题 | 角度 |\n|---|---|---|---|---|---|---|---|\n';
+    (c.schedule||[]).forEach((s, i) => {
+      md += `| ${i+1} | W${s.week} | 周${s.weekday} | ${s.platform||''} | ${s.pillar||''} | ${s.format||''} | ${s.topic||''} | ${s.angle||''} |\n`;
+    });
+    if(c.summary) md += `\n> ${c.summary.total_posts ?? ''} 条 · 推广占比 ${c.summary.promo_ratio||''} · ${c.summary.reminder||''}\n`;
+    const blob = new Blob([md], {type:'text/markdown'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = '内容排期表.md'; a.click();
+  });
+}
+
+/* ---- 历史 ---- */
+$('#btnReloadHist').addEventListener('click', loadHist);
+async function loadHist(){
+  if(!currentProfile) { $('#histOut').innerHTML = '<div class="empty">请先选择商户</div>'; return; }
+  const {contents} = await api('/api/contents?merchant_id=' + currentProfile.id);
+  if(!contents.length){ $('#histOut').innerHTML = '<div class="empty">还没有记录</div>'; return; }
+  $('#histOut').innerHTML = contents.map(c => `
+    <div class="hist" data-id="${c.id}">
+      <div class="t">${esc(c.topic)}</div>
+      <div class="m">${esc(c.created_at)} · ${esc(c.status)} · ${({ 'xhs-note-creator':'笔记','content-repurposing':'一稿多发','content-calendar':'排期表' })[c.skill] || c.skill} · #${c.id}</div>
+    </div>`).join('');
+  $('#histOut').querySelectorAll('.hist').forEach(el => el.addEventListener('click', async () => {
+    const {contents} = await api('/api/contents?merchant_id=' + currentProfile.id);
+    const row = contents.find(x => String(x.id) === el.dataset.id);
+    if(row.skill !== 'xhs-note-creator') return alert('排期/改编类内容请到对应标签页重新生成，或用导出功能带走');
+    currentNote = JSON.parse(row.payload); currentContentId = row.id;
+    switchTab('gen'); renderNote(currentNote);
+    $('#genLog').textContent = `已载入历史记录 #${row.id}`;
+  }));
+}
+
+/* ---- Tabs ---- */
+function switchTab(name){
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  ['plan','gen','check','rep','cal','hist'].forEach(t => $('#tab-' + t).classList.toggle('hide', t !== name));
+  if(name === 'hist') loadHist();
+  if(name === 'rep') loadRepSources();
+}
+async function loadRepSources(){
+  if(!currentProfile) return;
+  try{
+    const {contents} = await api('/api/contents?merchant_id=' + currentProfile.id + '&limit=50');
+    const sel = $('#repSource');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— 当前生成结果 —</option>' +
+      contents.filter(c => c.skill === 'xhs-note-creator')
+        .map(c => `<option value="${c.id}">#${c.id} ${esc(c.topic)}（${esc(c.created_at.slice(5,16))}）</option>`).join('');
+    sel.value = cur;
+  }catch{ /* 忽略 */ }
+}
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+loadProfiles().catch(e => alert('加载商户失败：' + e.message));
+</script>
+</body>
+</html>

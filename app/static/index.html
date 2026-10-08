@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>实体商家 AI 工作台</title>
+<style>
+  :root{
+    --bg:#f4f4f1; --card:#fff; --line:#e6e4df; --ink:#23211e; --ink-2:#6b6862; --ink-3:#96938c;
+    --accent:#2f6f5e; --accent-soft:#e8f1ee; --amber:#b45309; --amber-soft:#fdf3e3;
+    --red:#c0392b; --red-soft:#fdecea; --green:#2f855a; --green-soft:#e8f5ee;
+    --radius:14px; --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.7 "PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+    display:flex;min-height:100vh;-webkit-text-size-adjust:100%}
+
+  /* ---------- 登录 / 激活 ---------- */
+  #loginGate{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;
+    align-items:center;justify-content:center;padding:22px;overflow-y:auto}
+  .loginbox{width:100%;max-width:404px;background:#fff;border:1px solid var(--line);
+    border-radius:18px;padding:28px 26px 22px;box-shadow:var(--shadow)}
+  .lgbrand{font-size:17px;font-weight:700;margin-bottom:20px}
+  .lgt{font-size:22px;margin:0 0 10px}
+  .lgs{font-size:14px;color:var(--ink-2);line-height:1.7;margin:0 0 6px}
+  .lgl{display:block;font-size:13.5px;color:var(--ink-2);margin:16px 0 6px}
+  #loginGate input{width:100%;padding:13px 14px;font-size:16.5px;letter-spacing:1px;
+    font-family:ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:11px}
+  #loginGate input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+  .lgmsg{font-size:14px;color:var(--red);min-height:22px;margin-top:12px;line-height:1.6}
+  .lgmsg.ok{color:var(--green)}
+  .lgtip{font-size:12.5px;color:var(--ink-3);line-height:1.65;margin:16px 0 0;
+    border-top:1px solid var(--line);padding-top:13px}
+  .kv{display:flex;justify-content:space-between;gap:14px;padding:9px 0;
+    border-bottom:1px dashed var(--line);font-size:14.5px}
+  .kv span{color:var(--ink-2)}
+  .kv b{font-family:ui-monospace,Menlo,monospace;letter-spacing:.5px}
+
+  /* ---------- 侧边栏 ---------- */
+  aside{width:216px;flex:none;background:#fff;border-right:1px solid var(--line);
+    padding:20px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;
+    height:100vh;overflow-y:auto}
+  aside .logo{font-size:18px;font-weight:700;padding:4px 10px 2px;line-height:1.4}
+  aside .logo small{display:block;font-size:12px;color:var(--ink-3);font-weight:400}
+  aside .shop{margin:10px 10px 14px;padding:10px 12px;background:var(--accent-soft);
+    border-radius:10px;font-size:14px;color:var(--accent);font-weight:600;line-height:1.5}
+  aside nav{display:flex;flex-direction:column;gap:3px}
+  aside nav button{display:flex;align-items:center;gap:10px;text-align:left;border:none;background:none;
+    padding:11px 12px;border-radius:10px;font-size:15px;color:var(--ink-2);cursor:pointer;width:100%}
+  aside nav button .ico{font-size:17px;width:22px;text-align:center;flex:none}
+  aside nav button:hover{background:#f5f4f1}
+  aside nav button.on{background:var(--accent);color:#fff;font-weight:600}
+  aside .foot{margin-top:auto;padding:10px;font-size:12.5px;color:var(--ink-3)}
+  aside .foot a{color:var(--ink-2)}
+  @media (max-width:860px){
+    body{flex-direction:column}
+    aside{width:100%;height:auto;position:static;flex-direction:row;flex-wrap:wrap;align-items:center}
+    aside nav{flex-direction:row;flex-wrap:wrap;width:100%}
+    aside nav button{width:auto}
+    aside .shop{display:none} aside .foot{display:none}
+  }
+
+  /* ---------- 主区 ---------- */
+  main{flex:1;min-width:0;padding:26px 26px 90px;max-width:920px;margin:0 auto}
+  .view{display:none} .view.on{display:block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:24px;margin-bottom:18px}
+  h1{font-size:23px;margin:0 0 6px;font-weight:600;line-height:1.4}
+  h2{font-size:19px;margin:0 0 4px;font-weight:600}
+  h3{font-size:16px;margin:0 0 8px;font-weight:600;color:var(--ink-2)}
+  .sub{font-size:14px;color:var(--ink-3);margin:0 0 18px;line-height:1.6}
+  label{display:block;font-size:14.5px;color:var(--ink-2);margin:16px 0 6px;font-weight:500}
+  input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;
+    font:inherit;font-size:16px;background:#fcfcfb;color:var(--ink);outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);background:#fff}
+  textarea{resize:vertical;min-height:96px;line-height:1.7}
+  button{font:inherit;font-size:15px;padding:10px 18px;border-radius:11px;border:1px solid var(--line);
+    background:#fff;color:var(--ink);cursor:pointer;transition:.15s}
+  button:hover{border-color:var(--ink-3)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .big{width:100%;padding:16px;font-size:17.5px;font-weight:600;margin-top:18px;border-radius:13px}
+  .hint{font-size:13.5px;color:var(--ink-3);margin-top:10px;line-height:1.6}
+  .hide{display:none!important}
+  .log{font-size:13.5px;color:var(--ink-3);margin-top:10px;min-height:20px}
+  .err{background:var(--red-soft);color:var(--red);border-radius:10px;padding:12px 14px;font-size:14.5px;margin-top:12px}
+  .ok-bar{display:flex;align-items:center;gap:10px;background:var(--green-soft);color:var(--green);
+    border-radius:12px;padding:13px 16px;font-weight:600;font-size:16px;margin-bottom:18px}
+  .spin{display:inline-block;width:15px;height:15px;border:2.5px solid rgba(47,111,94,.25);
+    border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:8px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .steps{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink-2);
+    padding:14px 4px;border-bottom:1px solid var(--line)}
+  .steps:last-child{border-bottom:none}
+  .steps .dot{width:26px;height:26px;border-radius:50%;background:var(--line);flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
+  .steps.done .dot{background:var(--green)}
+  .steps.todo .dot{background:var(--amber)}
+  .steps .go{margin-left:auto;font-size:13.5px}
+  .block{margin-bottom:16px}
+  .block .k{font-size:13px;color:var(--ink-3);margin-bottom:5px;letter-spacing:.3px}
+  .block .v{font-size:16.5px;white-space:pre-wrap;word-break:break-word}
+  .block .v.title{font-size:19px;font-weight:600;line-height:1.5}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+  .tags span{font-size:14px;background:#f1f0ec;border-radius:8px;padding:4px 10px;color:var(--ink-2)}
+  .cards-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+  .cards-row img{width:100%;border-radius:10px;border:1px solid var(--line);display:block;background:#f4f3f0;
+    aspect-ratio:3/4;object-fit:cover}
+  .cards-row figure{margin:0}
+  .cards-row figcaption{font-size:12px;color:var(--ink-3);margin-top:5px;text-align:center}
+  .actions{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+  .actions button{flex:1;padding:15px;font-size:16px;font-weight:600;border-radius:13px;min-width:150px}
+  .pubsteps{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fbfbfa;font-size:14.5px;
+    color:var(--ink-2);line-height:1.9}
+  .pubsteps b{color:var(--ink)}
+  .pick{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:11px;
+    padding:12px 14px;margin-bottom:9px;cursor:pointer;font-size:15.5px}
+  .pick.on{border-color:var(--accent);background:var(--accent-soft)}
+  .pick .box{width:19px;height:19px;border:1.5px solid var(--line);border-radius:6px;flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;margin-top:4px}
+  .pick.on .box{background:var(--accent);border-color:var(--accent)}
+  .pick .box.radio{border-radius:50%}
+  .pick.on .box.radio{background:var(--accent)}
+
+  /* 选题 */
+  .mode-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:6px}
+  .mode{border:1.5px solid var(--line);border-radius:13px;padding:16px;cursor:pointer;transition:.15s}
+  .mode.on{border-color:var(--accent);background:var(--accent-soft)}
+  .mode .t{font-weight:700;font-size:16.5px}
+  .mode .d{font-size:13px;color:var(--ink-3);margin-top:4px;line-height:1.5}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .chips button{font-size:14px;padding:7px 15px;border-radius:99px;color:var(--ink-2)}
+  .chips button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .topic-card{border:1px solid var(--line);border-radius:13px;padding:15px 17px;margin-bottom:11px;
+    display:flex;gap:14px;align-items:center}
+  .topic-card.used{opacity:.55}
+  .topic-card .info{flex:1;min-width:0}
+  .topic-card .t{font-size:16.5px;font-weight:600}
+  .topic-card .a{font-size:13.5px;color:var(--accent);margin-top:3px}
+  .topic-card .r{font-size:13.5px;color:var(--ink-3);margin-top:2px}
+  .topic-card button{flex:none;font-size:14px;padding:8px 14px}
+
+  /* 卖点 */
+  .pt-row{border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px}
+  .pt-row.off{opacity:.5}
+  .pt-row .top{display:flex;align-items:center;gap:10px}
+  .pt-row input.pp{border:none;background:none;font-weight:600;font-size:15.5px;padding:2px 0}
+  .pt-row input.pd{border:none;background:none;font-size:13.5px;color:var(--ink-2);padding:2px 0;margin-top:2px}
+  .pt-row input:focus{background:#fff}
+  .summary{background:var(--accent-soft);color:var(--accent);border-radius:11px;padding:13px 16px;
+    font-weight:600;font-size:15.5px;margin-bottom:16px}
+  .badge{font-size:12px;border-radius:99px;padding:2px 10px;background:#f1f0ec;color:var(--ink-3);margin-left:8px}
+  .badge.new{background:var(--amber-soft);color:var(--amber)}
+
+  /* 素材库 */
+  .mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:13px}
+  .mat{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  .mat .th{height:130px;background:#f4f3f0;display:flex;align-items:center;justify-content:center;
+    font-size:34px;overflow:hidden;position:relative;cursor:pointer}
+  .mat .th img,.mat .th video{width:100%;height:100%;object-fit:cover;display:block}
+  .mat .kind{position:absolute;left:8px;top:8px;font-size:11.5px;background:rgba(0,0,0,.55);color:#fff;
+    border-radius:6px;padding:2px 8px}
+  .mat .info{padding:10px 12px}
+  .mat .n{font-size:12.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mat input{font-size:13.5px;padding:7px 9px;margin-top:7px}
+  .mat .row{display:flex;gap:6px;margin-top:8px}
+  .mat .row button{font-size:12.5px;padding:5px 10px;flex:1}
+  .mat.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .mat .selmark{position:absolute;right:8px;top:8px;width:24px;height:24px;border-radius:50%;
+    background:rgba(0,0,0,.35);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .mat.sel .selmark{background:var(--accent)}
+
+  /* 内容创作 */
+  .ctabs{display:flex;gap:8px;margin:18px 0 14px}
+  .ctabs button{font-size:15.5px;padding:10px 22px;border-radius:11px;font-weight:600}
+  .ctabs button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  video.result{width:100%;max-width:380px;border-radius:14px;border:1px solid var(--line);display:block;background:#000}
+  .shots .r{display:grid;grid-template-columns:76px 1fr;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .shots{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .shots .r:last-child{border-bottom:none}
+  .shots .t{font-size:13px;color:var(--accent);font-weight:600}
+  .shots .say{font-size:15px;margin-bottom:3px}
+  .shots .show{font-size:13px;color:var(--ink-3)}
+  .ptabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:20px 0 16px;overflow-x:auto}
+  .ptabs button{border:none;background:none;padding:9px 2px;margin-right:18px;color:var(--ink-3);
+    border-bottom:2.5px solid transparent;font-weight:500;font-size:15.5px;white-space:nowrap;border-radius:0}
+  .ptabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- 登录 / 激活（云端必须：激活码 + 手机号；本地直连自动跳过） -->
+<div id="loginGate" class="hide">
+  <div class="loginbox">
+    <div class="lgbrand">🏪 实体商家 AI 工作台</div>
+    <h2 class="lgt">激活并登录</h2>
+    <p class="lgs">填你购买时拿到的激活码和手机号。首次登录会把激活码绑定到你手机上，之后换设备用同一手机号就能接着用原来的资料。</p>
+    <label class="lgl">激活码</label>
+    <input id="licCode" placeholder="XS-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false">
+    <label class="lgl">手机号</label>
+    <input id="licPhone" placeholder="11 位手机号" inputmode="numeric" maxlength="11" autocomplete="tel">
+    <button class="primary big" id="btnLogin">登录 / 激活</button>
+    <div class="lgmsg" id="loginMsg"></div>
+    <p class="lgtip">🔒 一码一人：激活码绑定手机号后，别人就算拿到码也登不进来。</p>
+  </div>
+</div>
+
+<aside>
+  <div class="logo">🏪 实体商家 AI 工作台<small>填档案 → 提卖点 → 选选题 → 出内容</small></div>
+  <div class="shop" id="shopCard">还没录入商家</div>
+  <nav>
+    <button data-v="home" class="on"><span class="ico">🏠</span>首页</button>
+    <button data-v="profile"><span class="ico">📋</span>商家档案</button>
+    <button data-v="points"><span class="ico">✨</span>卖点提炼</button>
+    <button data-v="topics"><span class="ico">💡</span>内容选题</button>
+    <button data-v="create"><span class="ico">✍️</span>内容创作</button>
+    <button data-v="poster"><span class="ico">🎨</span>营销海报</button>
+    <button data-v="materials"><span class="ico">🎞️</span>素材库</button>
+    <button data-v="history"><span class="ico">🗂️</span>内容历史</button>
+    <button data-v="account"><span class="ico">🔗</span>我的账号</button>
+  </nav>
+  <div class="foot">当前账号：内部测试<br><a href="/pro" target="_blank">更多专业工具 →</a></div>
+</aside>
+
+<main>
+
+<!-- ============ 首页 ============ -->
+<section id="v-home" class="view on">
+  <div class="card">
+    <h1 id="homeHi">你好</h1>
+    <p class="sub">四步把你的店搬到线上：档案填全 → 提炼卖点 → 挑选题 → 出图文或视频。每步一两分钟，手机电脑都能操作。</p>
+    <div id="homeSteps"></div>
+  </div>
+  <div class="card">
+    <h3>今天想直接发一条？</h3>
+    <p class="hint" style="margin-top:4px">去「内容选题」看看今天推荐，挑一条直接写成成品。</p>
+    <div class="actions" style="margin-top:12px">
+      <button class="primary" onclick="go('topics')">看看今天推荐什么</button>
+      <button onclick="go('materials')">传几张店里实拍</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 商家档案 ============ -->
+<section id="v-profile" class="view">
+  <div class="card">
+    <h1>商家档案</h1>
+    <p class="sub">第一次用先把这里填全。写大白话就行，写得越具体，后面写出来的内容越像你店里的。</p>
+
+    <label>店名</label>
+    <input id="pName" placeholder="比如：阿珍肠粉店">
+    <label>开在哪儿</label>
+    <input id="pLocation" placeholder="比如：老街菜市场旁">
+    <label>你的店做什么</label>
+    <select id="pCategory">
+      <option value="餐饮">餐饮（饭店、小吃、饮品）</option>
+      <option value="零售">零售（超市、水果、服装）</option>
+      <option value="幼教">幼教（幼儿园、托育、培训）</option>
+      <option value="服务">服务（美容、维修、家政）</option>
+    </select>
+    <label>店里的特色和产品（重点填，越啰嗦越好）</label>
+    <textarea id="pFeatures" placeholder="比如：&#10;手工豆腐每天凌晨现做，一天只做两板，中午前就卖完&#10;素菜自助 38 元一位，菜是自家地里的&#10;开了八年，老街坊都爱来"></textarea>
+    <p class="hint">卖点提炼就从这段话里来。想到什么写什么：招牌产品、做法、年头、价格、回头客……</p>
+    <label>主要卖什么（招牌产品，一行一样）</label>
+    <textarea id="pPillars" rows="3" style="min-height:70px" placeholder="比如：&#10;招牌手工豆腐&#10;素菜自助餐 38 元/位&#10;现磨豆浆"></textarea>
+    <p class="hint">这里写具体产品名，出选题时会优先围着它们出。</p>
+    <label>客人主要是谁</label>
+    <input id="pAudience" placeholder="比如：附近街坊、带娃的家长、上班族">
+    <label>有什么不能提的</label>
+    <input id="pTaboo" placeholder="比如：不吹牛、不说治病、不提价格战">
+    <p class="hint">填了就严格遵守。不填默认：不吹牛、不用「最/第一」。</p>
+
+    <button class="primary big" id="btnSave">保存档案</button>
+    <div class="log" id="pLog"></div>
+  </div>
+</section>
+
+<!-- ============ 卖点提炼 ============ -->
+<section id="v-points" class="view">
+  <div class="card">
+    <h1>卖点提炼</h1>
+    <p class="sub">AI 从你的档案里提炼出「这家店最值得对外说的几条」，你勾一勾哪些能用。勾上的卖点，后面所有选题和内容都围绕它来写。</p>
+    <div id="pointsEmpty" class="hide">
+      <p class="hint">先去「商家档案」把店名和特色填了，再来提炼。</p>
+      <button class="big" onclick="go('profile')">去填档案</button>
+    </div>
+    <div id="pointsBody" class="hide">
+      <div id="pointsSummary"></div>
+      <div id="pointsList"></div>
+      <div class="actions" style="margin-top:14px">
+        <button id="btnAddPoint">＋ 手动加一条</button>
+        <button id="btnReExtract">重新提炼</button>
+        <button class="primary" id="btnSavePoints">保存勾选</button>
+      </div>
+      <div class="log" id="ptLog"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 内容选题 ============ -->
+<section id="v-topics" class="view">
+  <div class="card">
+    <h1>内容选题</h1>
+    <p class="sub">只读取你的商家档案和启用的卖点。先说说今天有什么由头、你想拍什么，AI 就围着它出题；不填也能生成。</p>
+
+    <label style="margin-top:6px">今天有什么由头 / 你想拍什么？（可不填）</label>
+    <textarea id="tContext" rows="2" placeholder="例：今天是中秋节，想做几条跟中秋有关的&#10;或者：新到一批冬枣，想拍一拍&#10;想说什么就写什么，写了大白话就行"></textarea>
+    <div class="chips" id="ctxQuick">
+      <button data-x="今天是中秋节，想做几条跟中秋有关的">🎑 中秋节</button>
+      <button data-x="快过年了，想拍年货和团圆相关">🧨 过年年货</button>
+      <button data-x="开学季，想做学生和家长爱看的">🎒 开学季</button>
+      <button data-x="店里搞周年庆">🎂 店庆</button>
+      <button data-x="新到了一批货，想拍拍新品">🆕 新品到货</button>
+      <button data-x="最近下雨，生意有点淡">🌧 天气不好</button>
+    </div>
+
+    <label style="margin-top:14px">生成方式</label>
+    <div class="mode-row">
+      <div class="mode on" data-mode="today">
+        <div class="t">今日推荐</div><div class="d">生成 3 条今天可执行的选题</div>
+      </div>
+      <div class="mode" data-mode="weekly">
+        <div class="t">7 天计划</div><div class="d">生成 7 条差异化选题，一天一条</div>
+      </div>
+      <div class="mode" data-mode="free">
+        <div class="t">自由生成</div><div class="d">不限时态的常规选题 5 条</div>
+      </div>
+    </div>
+
+    <label style="margin-top:14px">快捷条件（可多选，可不选）</label>
+    <div class="chips" id="chipRow">
+      <button data-c="no_open">🚫 今天不出摊</button>
+      <button data-c="no_time">⏱ 没时间拍</button>
+      <button data-c="signature">🍖 推招牌菜</button>
+      <button data-c="boss_ip">👤 老板IP</button>
+      <button data-c="local">📍 同城流量</button>
+      <button data-c="promo">🎉 活动营销</button>
+    </div>
+
+    <button class="primary big" id="btnGenTopics">生成并保存选题</button>
+    <div class="log" id="tLog"></div>
+  </div>
+
+  <div class="card">
+    <h3>选题库 <span class="badge" id="topicCount"></span></h3>
+    <div id="topicList"></div>
+  </div>
+</section>
+
+<!-- ============ 内容创作 ============ -->
+<section id="v-create" class="view">
+  <div class="card" id="createTopicCard">
+    <h3>这条要写的选题</h3>
+    <div id="curTopic"><p class="hint" style="margin:0">还没选。先去「内容选题」挑一条。</p></div>
+  </div>
+
+  <div class="card" id="createRun" style="display:none">
+    <h2>生成这条的成品文案</h2>
+    <p class="sub" style="margin-bottom:8px">只写最好的一条：图文版、视频版共用这一份文案，不再分平台各写一遍。</p>
+    <label style="margin-top:10px">还想交代一句？（可不填）</label>
+    <textarea id="cExtra" rows="2" style="min-height:64px" placeholder="例：这条重点推中秋礼盒 / 别提价格 / 用街坊聊天的口气"></textarea>
+    <button class="primary big" id="btnGen" style="margin-top:14px">开始生成</button>
+    <div class="steps hide" id="c1"><span class="dot">1</span>读懂档案、卖点和选题</div>
+    <div class="steps hide" id="c2"><span class="dot">2</span>写成成品文案（标题/正文/标签）</div>
+    <div class="steps hide" id="c3"><span class="dot">3</span>配图文卡片</div>
+    <div class="log" id="cLog"></div>
+  </div>
+
+  <!-- 成品 -->
+  <div id="createResult" class="hide">
+    <div class="ok-bar"><span>文案写好了，下面选「图文版」或「视频版」</span></div>
+    <div class="card">
+      <div class="block"><div class="k">标题</div><div class="v title" id="mTitle"></div></div>
+      <div class="block"><div class="k">正文</div><div class="v" id="mBody"></div></div>
+      <div id="mTags"></div>
+      <div class="block" id="mTipsBlock"><div class="k">拍摄小贴士</div><div class="v" id="mTips"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="ctabs">
+        <button id="tabImage" class="on">🖼️ 图文版</button>
+        <button id="tabVideo">🎬 视频版（AI配音）</button>
+      </div>
+
+      <!-- 图文版 -->
+      <div id="paneImage">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <h3 style="margin:0;flex:1">配图（可以直接用）</h3>
+          <button id="btnStyle" style="font-size:13.5px;padding:6px 12px">换个样子</button>
+        </div>
+        <div class="cards-row" id="cardsRow"><p class="hint" style="margin:0">正在做图…</p></div>
+        <p class="hint" id="cardDensity"></p>
+        <div class="actions">
+          <button id="btnCopyAll">复制文案</button>
+          <button class="primary" id="btnShip">定稿，一键导入</button>
+        </div>
+      </div>
+
+      <!-- 视频版 -->
+      <div id="paneVideo" class="hide">
+        <p class="hint" style="margin-top:0">不用你出镜、不用你讲话：AI 拿你上传的实拍素材 + 配音 + 字幕，自动拼成一条 20-40 秒的营销视频。先在下面挑素材（没上传先去「素材库」）。</p>
+        <label>配音音色</label>
+        <select id="voiceSel"></select>
+        <label>挑这条视频要用的素材（勾选）</label>
+        <div id="videoMats"><p class="hint">正在读素材库…</p></div>
+        <div class="actions">
+          <button class="primary" id="btnScript">第①步：生成配音分镜</button>
+        </div>
+        <div class="log" id="vLog"></div>
+        <div id="scriptOut" class="hide" style="margin-top:16px">
+          <h3>配音分镜（可以看看顺不顺口）</h3>
+          <div class="shots" id="sceneList"></div>
+          <div class="actions">
+            <button id="btnReScript">换个分镜</button>
+            <button class="primary" id="btnRender">第②步：合成视频</button>
+          </div>
+        </div>
+        <div id="videoOut" class="hide" style="margin-top:18px">
+          <h3>视频做好了</h3>
+          <video class="result" id="videoPlayer" controls></video>
+          <div class="actions">
+            <a id="btnDownload" download><button>下载视频到电脑</button></a>
+            <button id="btnShipVideo">去发布</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 发布（图文） -->
+    <div class="card hide" id="shipCard">
+      <h2>一键导入到平台</h2>
+      <p class="sub" style="margin-bottom:10px">勾选要发的平台。绑定了账号的平台可以自动发，没绑定的给你手动导入的指引。</p>
+      <div id="shipPicks"></div>
+      <div class="pubsteps hide" id="pubOut" style="margin-top:14px"></div>
+      <div class="actions">
+        <button id="btnExport" class="primary" style="display:none">⬇ 一键导出成品（配图 + 文案）</button>
+        <button id="btnAutoPub">自动发到绑定的平台</button>
+        <button id="btnShipHow">看手动导入指引</button>
+      </div>
+      <div class="pubsteps hide" id="shipHow" style="margin-top:12px"></div>
+    </div>
+
+    <!-- 发布（视频） -->
+    <div class="card hide" id="shipVideoCard">
+      <h2>视频发到哪儿</h2>
+      <p class="sub" style="margin-bottom:10px">勾选平台。绑定了账号的可以直接自动发；小红书建议发图文版，朋友圈要手动。</p>
+      <div id="shipVideoPicks"></div>
+      <div class="pubsteps hide" id="pubVideoOut" style="margin-top:14px"></div>
+      <div class="actions">
+        <button id="btnExportVideo" class="primary" style="display:none">⬇ 一键导出视频</button>
+        <button id="btnAutoPubVideo">自动发到绑定的平台</button>
+        <button id="btnShipVideoHow">看手动发布指引</button>
+      </div>
+      <div class="pubsteps hide" id="shipVideoHow" style="margin-top:12px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 素材库 ============ -->
+<section id="v-materials" class="view">
+  <div class="card">
+    <h1>素材库</h1>
+    <p class="sub">把店里平时拍的照片、小视频传上来。写视频的时候，AI 从这里挑画面配进分镜。每条素材最好写一句备注（拍的是什么），配得才准。</p>
+    <input type="file" id="matFiles" multiple accept="image/*,video/*" style="padding:10px">
+    <label>备注（多选文件时用 | 隔开，顺序对应；也可以传完再补）</label>
+    <input id="matNotes" placeholder="比如：招牌肠粉出炉|店里全景|老板磨米浆">
+    <button class="primary big" id="btnUpload">上传到素材库</button>
+    <div class="log" id="mLog"></div>
+  </div>
+  <div class="card">
+    <h3>已上传 <span class="badge" id="matCount"></span></h3>
+    <p class="hint" id="matUsage" style="margin:2px 0 10px"></p>
+    <div class="mat-grid" id="matGrid"></div>
+  </div>
+</section>
+
+<!-- ============ 营销海报 ============ -->
+<section id="v-poster" class="view">
+  <div class="card" id="posterPick">
+    <h1>营销海报</h1>
+    <p class="sub">挑一个模板 → 填几句话 → 一键出图。发朋友圈、贴店里、发顾客群都行。二维码可以自动生成，也可以传你自己的微信码。</p>
+    <div class="ptabs" id="posterCats"></div>
+    <div id="posterTplGrid" class="mat-grid"></div>
+  </div>
+  <div class="card hide" id="posterForm">
+    <button id="btnPosterBack" style="margin-bottom:10px">← 换个模板</button>
+    <h3 id="posterTplName"></h3>
+    <p class="hint" id="posterTplDesc"></p>
+    <div id="posterFields"></div>
+    <label>你自己的微信二维码图片（可选，传了就优先用你的）</label>
+    <input type="file" id="posterQr" accept="image/*" style="padding:8px">
+    <div class="actions" style="margin-top:14px">
+      <button class="primary big" id="btnPosterGo">生成海报</button>
+    </div>
+    <div class="log hide" id="posterLog"></div>
+    <div id="posterResult" style="margin-top:14px"></div>
+  </div>
+</section>
+
+<!-- ============ 内容历史 ============ -->
+<section id="v-history" class="view">
+  <div class="card">
+    <h1>内容历史</h1>
+    <p class="sub">写过的每一条都在这里，点开能看全文；做过视频的直接回看。</p>
+    <div id="historyList"><p class="hint">加载中…</p></div>
+  </div>
+</section>
+
+<!-- ============ 我的账号 ============ -->
+<section id="v-account" class="view">
+  <div class="card">
+    <h1>我的账号</h1>
+    <p class="sub">这里管两件事：你的登录账号（激活码/手机号），和四个平台的自动代发绑定。</p>
+    <div id="capsNote" class="hide"></div>
+    <div id="chList"><p class="hint">正在检查绑定状态…（四个平台都要起一次浏览器校验，首次约半分钟，之后有缓存）</p></div>
+    <div id="bindArea" class="hide"></div>
+    <div class="log" id="accLog"></div>
+  </div>
+
+  <div class="card" id="acctCard"></div>
+</section>
+
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+// ---- 登录态：云端用「激活码 + 手机号」换到的 token；本地直连（localhost）免登录 ----
+const IS_LOCAL = ['localhost', '127.0.0.1', '::1', ''].includes(location.hostname);
+let TOKEN = localStorage.getItem('auth_token') || '';
+let LICENSE = null;                                  // {code, phone, plan}
+const authHeaders = () => TOKEN ? {'Authorization': 'Bearer ' + TOKEN, 'X-Auth-Token': TOKEN} : {};   // 双头兼容：有些代理会替换 Authorization，X-Auth-Token 兜底
+// 浏览器原生请求（<img>/<video>/<a download>）不会带 Authorization 头，
+// 媒体/下载地址一律经 murl() 追加 ?token=，后端 _bearer 支持 query 兜底
+const murl = u => u ? (TOKEN ? u + (u.includes('?') ? '&' : '?') + 'token=' + TOKEN : u) : u;
+
+function showLogin(msg){
+  $('#loginGate').classList.remove('hide');
+  if(msg) $('#loginMsg').textContent = msg;
+}
+async function doLogin(){
+  const code = ($('#licCode').value || '').trim();
+  const phone = ($('#licPhone').value || '').trim();
+  const msg = $('#loginMsg');
+  if(!code || !phone){ msg.className = 'lgmsg'; msg.textContent = '激活码和手机号都要填'; return; }
+  msg.className = 'lgmsg'; msg.textContent = '正在登录…';
+  $('#btnLogin').disabled = true;
+  const d = await api('/api/auth/login', {method:'POST',
+    headers:{'Content-Type':'application/json'}, body: JSON.stringify({code, phone})});
+  $('#btnLogin').disabled = false;
+  if(!d.ok){ msg.textContent = d.error || '登录失败，请检查激活码和手机号'; return; }
+  TOKEN = d.token; LICENSE = d.license;
+  localStorage.setItem('auth_token', TOKEN);
+  msg.className = 'lgmsg ok';
+  msg.textContent = d.license.activated_now
+    ? ('激活成功，正在进入…（这个激活码已绑定到 ' + d.license.phone + '）') : '登录成功，正在进入…';
+  setTimeout(() => { $('#loginGate').classList.add('hide'); boot(); }, 700);
+}
+$('#btnLogin').addEventListener('click', doLogin);
+$('#licPhone').addEventListener('keydown', e => { if(e.key === 'Enter') doLogin(); });
+$('#licCode').addEventListener('keydown', e => { if(e.key === 'Enter') $('#licPhone').focus(); });
+let CAPS = {publish:true, video:true, cards:true};   // 本机能力（云端部分不可用）
+
+const api = async (path, opt) => {
+  opt = Object.assign({}, opt || {});
+  opt.headers = Object.assign({}, opt.headers || {}, authHeaders());
+  const r = await fetch(path, opt);
+  const d = await r.json().catch(() => ({ok:false, error:'服务没有响应'}));
+  if(!d.error && d.detail) d.error = d.detail;        // FastAPI 的报错在 detail 字段
+  if(!r.ok && !d.error) d.error = '请求失败（' + r.status + '）';
+  if(d.need_login) showLogin('登录已过期或未登录，请重新输入激活码和手机号');
+  return d;
+};
+const post = (path, body) => api(path, {method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body||{})});
+// 长任务：提交 → 轮询（AI 生成常超 60s，同步请求会被网关掐断）
+async function runTask(kind, body, logEl, waitMsg){
+  const d = await post('/api/tasks', Object.assign({kind}, body));
+  if(!d.ok){ if(logEl) logEl.innerHTML = '<div class="err">' + esc(d.error||'提交失败') + '</div>'; return null; }
+  if(logEl) logEl.innerHTML = '<span class="spin"></span>' + waitMsg;
+  for(;;){
+    await new Promise(r => setTimeout(r, 2500));
+    const t = await api('/api/tasks/' + d.task_id);
+    if(!t.ok){ if(logEl) logEl.innerHTML = '<div class="err">' + esc(t.error||'任务丢失，请重试') + '</div>'; return null; }
+    if(t.status === 'error'){ if(logEl) logEl.innerHTML = '<div class="err">' + esc(t.error||'失败') + '</div>'; return null; }
+    if(t.status === 'done') return t.result;
+  }
+}
+const esc = s => String(s==null?'':s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+let profile = null;       // 商家档案
+let points = [];          // 卖点（可编辑副本）
+let curMode = 'today';
+let chips = new Set();
+let pickedTopic = null;   // 选中的选题 {id,title,angle}
+let contentId = null;     // 当前成品 id
+let content = null;       // 当前成品 payload
+let mats = [];            // 素材库缓存
+let selMats = new Set();  // 视频勾选的素材 id
+let picked = {};          // 发布勾选的平台
+let styleIdx = 0;
+const STYLES = [{k:'cream',n:'奶油温柔'},{k:'swiss',n:'瑞士极简'},{k:'journal',n:'手账贴纸'}];
+const PLATFORMS = [
+  {k:'xiaohongshu', n:'小红书'},
+  {k:'douyin',      n:'抖音'},
+  {k:'kuaishou',    n:'快手'},
+  {k:'channels',    n:'微信视频号'},
+  {k:'moments',     n:'微信朋友圈'},
+];
+const CH_NAME = {xiaohongshu:'小红书', douyin:'抖音', kuaishou:'快手', channels:'微信视频号'};
+
+function go(v){ nav(v); }
+function nav(v){
+  $$('.view').forEach(x => x.classList.remove('on'));
+  $('#v-' + v).classList.add('on');
+  $$('aside nav button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  if(v === 'points') renderPoints();
+  if(v === 'topics') loadTopicList();
+  if(v === 'materials') loadMats();
+  if(v === 'history') loadHistory();
+  if(v === 'account') loadAccount();
+  if(v === 'home') renderHome();
+  if(v === 'create') renderCreateEntry();
+  if(v === 'poster') initPoster();
+  window.scrollTo({top:0});
+}
+$$('aside nav button').forEach(b => b.addEventListener('click', () => nav(b.dataset.v)));
+
+function parseJson(v, dft){
+  if(Array.isArray(v)) return v;
+  try{ return JSON.parse(v || 'null') ?? dft; }catch(e){ return dft; }
+}
+
+// ---------- 启动 ----------
+async function loadCaps(){
+  const d = await api('/api/capabilities');
+  if(d.ok && d.capabilities) CAPS = d.capabilities;
+}
+function renderAccountCard(){
+  const box = $('#acctCard');
+  if(!box) return;
+  if(!LICENSE){
+    box.innerHTML = '<h3>我的账号</h3><p class="sub">本地单机版：数据存在这台电脑上，不需要登录。</p>';
+    return;
+  }
+  box.innerHTML = '<h3>我的账号</h3>' +
+    '<div class="kv"><span>激活码</span><b>' + esc(LICENSE.code) + '</b></div>' +
+    '<div class="kv"><span>手机号</span><b>' + esc(LICENSE.phone) + '</b></div>' +
+    '<div class="kv"><span>套餐</span><b>' + esc(LICENSE.plan === 'pro' ? '专业版' : '基础版') + '</b></div>' +
+    '<p class="hint" style="margin-top:10px">换手机或换电脑时，用同一个激活码 + 这个手机号登录，资料都在云端，接着用。</p>' +
+    '<button id="btnLogout" style="margin-top:10px">退出登录</button>';
+  $('#btnLogout').addEventListener('click', () => {
+    localStorage.removeItem('auth_token'); TOKEN = '';
+    location.reload();
+  });
+}
+async function boot(){
+  const me = await api('/api/auth/me');
+  if(me.need_login){ showLogin(); return; }
+  LICENSE = me.license || null;
+  $('#loginGate').classList.add('hide');
+  renderAccountCard();
+  await loadCaps();
+  const d = await api('/api/profiles');
+  const list = d.profiles || [];
+  if(list.length){
+    const full = await api('/api/profiles/' + list[0].id);
+    profile = full.profile;
+    profile.pillars = parseJson(profile.pillars, []);
+    profile.taboo = Array.isArray(profile.taboo) ? profile.taboo : parseJson(profile.taboo, []);
+    profile.selling_points = parseJson(profile.selling_points, []);
+  }
+  renderShopCard(); renderHome(); fillProfileForm();
+}
+function renderShopCard(){
+  $('#shopCard').innerHTML = profile
+    ? esc(profile.name) + '<br><span style="font-weight:400;font-size:12.5px">' + esc(profile.category || '') + ' · 剩 ' + (profile.quota_left ?? '—') + ' 次</span>'
+    : '还没录入商家';
+  $('#homeHi').textContent = profile ? ('你好，' + profile.name) : '你好';
+}
+
+// ---------- 首页 ----------
+function renderHome(){
+  if(!profile){
+    $('#homeSteps').innerHTML = '<p class="hint">还没有你的店。第一步：把商家档案填了。</p>';
+    return;
+  }
+  const hasProfile = !!(profile.features || (profile.pillars||[]).length);
+  const hasPoints = (profile.selling_points||[]).some(p => p.on !== false);
+  const steps = [
+    {n:1, t:'商家档案', d:'店名、位置、特色和产品', ok:hasProfile, v:'profile'},
+    {n:2, t:'卖点提炼', d:'AI 提炼，你勾选启用的卖点', ok:hasPoints, v:'points'},
+    {n:3, t:'内容选题', d:'写个由头（如：今天中秋节）→ AI 围着它出题', ok:!!pickedTopic, v:'topics'},
+    {n:4, t:'内容创作', d:'图文版或视频版，一键导入平台', ok:false, v:'create'},
+  ];
+  $('#homeSteps').innerHTML = steps.map(s =>
+    '<div class="steps ' + (s.ok ? 'done' : 'todo') + '">' +
+    '<div class="dot">' + (s.ok ? '✓' : s.n) + '</div><div><b>' + s.t + '</b>' +
+    '<div style="font-size:13px;color:var(--ink-3)">' + s.d + '</div></div>' +
+    '<button class="go" data-v="' + s.v + '">' + (s.ok ? '再看看' : '去完成') + '</button></div>'
+  ).join('');
+  $$('#homeSteps .go').forEach(b => b.addEventListener('click', () => nav(b.dataset.v)));
+}
+
+// ---------- 商家档案 ----------
+function fillProfileForm(){
+  if(!profile) return;
+  $('#pName').value = profile.name || '';
+  $('#pLocation').value = profile.location || '';
+  $('#pCategory').value = profile.category || '餐饮';
+  $('#pFeatures').value = profile.features || '';
+  $('#pPillars').value = (Array.isArray(profile.pillars) ? profile.pillars : parseJson(profile.pillars, [])).join('\n');
+  $('#pAudience').value = profile.audience || '';
+  $('#pTaboo').value = Array.isArray(profile.taboo) ? profile.taboo.join('、') : (profile.taboo || '');
+}
+$('#btnSave').addEventListener('click', async () => {
+  const name = $('#pName').value.trim();
+  if(!name){ $('#pLog').innerHTML = '<span style="color:var(--red)">店名要填一下</span>'; return; }
+  $('#pLog').innerHTML = '<span class="spin"></span>正在保存…';
+  const body = {
+    name, category: $('#pCategory').value, location: $('#pLocation').value.trim(),
+    features: $('#pFeatures').value.trim(),
+    pillars: $('#pPillars').value.split('\n').map(s => s.trim()).filter(Boolean),
+    audience: $('#pAudience').value.trim(),
+    taboo: $('#pTaboo').value.trim() ? $('#pTaboo').value.split(/[,，、\s]+/).filter(Boolean) : ['不吹牛', '不用最/第一'],
+  };
+  const d = profile
+    ? await api('/api/profiles/' + profile.id, {method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify(body)})
+    : await post('/api/profiles', {...body, quota_left: 30});
+  if(!d.ok){ $('#pLog').innerHTML = '<span style="color:var(--red)">' + esc(d.error||'保存失败') + '</span>'; return; }
+  const full = await api('/api/profiles/' + (profile ? profile.id : d.id));
+  profile = full.profile;
+  profile.pillars = parseJson(profile.pillars, []);
+  profile.taboo = Array.isArray(profile.taboo) ? profile.taboo : parseJson(profile.taboo, []);
+  profile.selling_points = parseJson(profile.selling_points, []);
+  renderShopCard(); renderHome();
+  $('#pLog').innerHTML = '<span style="color:var(--green)">档案已保存。下一步去「卖点提炼」。</span>';
+});
+
+// ---------- 卖点提炼 ----------
+function renderPoints(){
+  if(!profile){ return; }
+  const has = (profile.selling_points||[]).length > 0;
+  $('#pointsEmpty').classList.toggle('hide', !!profile.features || has);
+  $('#pointsBody').classList.toggle('hide', !has && !profile.features);
+  if(!has && !profile.features) return;
+  points = (profile.selling_points||[]).map(p => ({...p}));
+  drawPoints();
+}
+function drawPoints(summary){
+  if(summary !== undefined) $('#pointsSummary').innerHTML = summary ? '<div class="summary">' + esc(summary) + '</div>' : '';
+  else if(profile.features && points.length) {}
+  $('#pointsList').innerHTML = points.map((p,i) =>
+    '<div class="pt-row' + (p.on === false ? ' off' : '') + '" data-i="' + i + '">' +
+    '<div class="top"><div class="pick" style="margin:0;padding:6px 8px;border:none" data-toggle="' + i + '">' +
+    '<div class="box"' + (p.on !== false ? ' style="background:var(--accent);border-color:var(--accent)"' : '') + '>' + (p.on !== false ? '✓' : '') + '</div>' +
+    '<span style="font-size:13px;color:var(--ink-2)">启用</span></div></div>' +
+    '<input class="pp" data-f="point" data-i="' + i + '" value="' + esc(p.point||'') + '" placeholder="卖点一句话">' +
+    '<input class="pd" data-f="detail" data-i="' + i + '" value="' + esc(p.detail||'') + '" placeholder="内容里怎么用（选填）">' +
+    '</div>'
+  ).join('');
+  $$('#pointsList [data-toggle]').forEach(el => el.addEventListener('click', () => {
+    const i = +el.dataset.toggle;
+    points[i].on = points[i].on === false ? true : false;
+    drawPointsKeep();
+  }));
+  $$('#pointsList input[data-f]').forEach(inp => inp.addEventListener('input', () => {
+    points[+inp.dataset.i][inp.dataset.f] = inp.value;
+  }));
+}
+function drawPointsKeep(){
+  // 保持焦点不重绘输入框，只更新遮罩样式
+  $$('#pointsList .pt-row').forEach(row => {
+    const p = points[+row.dataset.i];
+    row.classList.toggle('off', p.on === false);
+    row.querySelector('.box').style.cssText = p.on !== false ? 'background:var(--accent);border-color:var(--accent)' : '';
+    row.querySelector('.box').textContent = p.on !== false ? '✓' : '';
+  });
+}
+async function extractPoints(){
+  if(!profile) return;
+  $('#btnReExtract').disabled = true;
+  const d = await runTask('extract', {merchant_id: profile.id},
+    $('#ptLog'), 'AI 正在读你的档案、提炼卖点（约 1 分钟）…');
+  $('#btnReExtract').disabled = false;
+  if(!d) return;
+  profile.selling_points = d.points;
+  points = d.points.map(p => ({...p}));
+  drawPoints(d.summary);
+  $('#ptLog').innerHTML = '<span style="color:var(--green)">提炼好了！勾选你认可的卖点，点「保存勾选」。</span>';
+}
+$('#btnReExtract').addEventListener('click', extractPoints);
+$('#btnAddPoint').addEventListener('click', () => { points.push({point:'', detail:'', on:true}); drawPoints(); });
+$('#btnSavePoints').addEventListener('click', async () => {
+  points = points.filter(p => (p.point||'').trim());
+  const d = await api('/api/profiles/' + profile.id, {method:'PUT', headers:{'content-type':'application/json'},
+    body: JSON.stringify({selling_points: points})});
+  if(!d.ok){ $('#ptLog').innerHTML = '<div class="err">' + esc(d.error||'失败') + '</div>'; return; }
+  profile.selling_points = points;
+  $('#ptLog').innerHTML = '<span style="color:var(--green)">已保存。可以去「内容选题」了。</span>';
+});
+
+// ---------- 内容选题 ----------
+$$('.mode').forEach(m => m.addEventListener('click', () => {
+  $$('.mode').forEach(x => x.classList.remove('on'));
+  m.classList.add('on'); curMode = m.dataset.mode;
+}));
+// 由头快选：点一下填进输入框（可再改），再点一下清空
+$$('#ctxQuick button').forEach(b => b.addEventListener('click', () => {
+  const ta = $('#tContext');
+  const same = ta.value.trim() === b.dataset.x;
+  ta.value = same ? '' : b.dataset.x;
+  $$('#ctxQuick button').forEach(x => x.classList.toggle('on', !same && x === b));
+  if(!same) ta.focus();
+}));
+$$('#chipRow button').forEach(b => b.addEventListener('click', () => {
+  const c = b.dataset.c;
+  chips.has(c) ? chips.delete(c) : chips.add(c);
+  b.classList.toggle('on', chips.has(c));
+}));
+$('#btnGenTopics').addEventListener('click', async () => {
+  if(!profile){ $('#tLog').innerHTML = '<span style="color:var(--red)">先去填商家档案</span>'; return; }
+  const ctxText = ($('#tContext').value || '').trim();
+  const waitMsg = ctxText
+    ? '正在围着「' + esc(ctxText.slice(0,14)) + (ctxText.length>14?'…':'') + '」出题（约 1-2 分钟）…'
+    : '正在按你的档案和卖点出题（约 1-2 分钟）…';
+  $('#btnGenTopics').disabled = true;
+  const d = await runTask('topics', {merchant_id: profile.id, mode: curMode, chips: [...chips], context: ctxText},
+    $('#tLog'), waitMsg);
+  $('#btnGenTopics').disabled = false;
+  if(!d) return;
+  $('#tLog').innerHTML = '<span style="color:var(--green)">出好了 ' + d.topics.length + ' 条，看上哪条点「就写这条」。</span>';
+  loadTopicList(true);
+});
+async function loadTopicList(fresh){
+  if(!profile) return;
+  if(!fresh){
+    const d = await api('/api/boss-topics?merchant_id=' + profile.id);
+    if(d.ok){ drawTopics(d.topics); return; }
+  }
+  const d = await api('/api/boss-topics?merchant_id=' + profile.id);
+  d.ok && drawTopics(d.topics);
+}
+function drawTopics(topics){
+  $('#topicCount').textContent = topics.length ? ('共 ' + topics.length + ' 条，按最新生成排序') : '';
+  $('#topicList').innerHTML = topics.length ? topics.map(t => {
+    const ctx = (t.context || '').trim();
+    const ctxTag = ctx ? '<span class="badge">🎯 ' + esc(ctx.slice(0,10)) + (ctx.length>10?'…':'') + '</span>' : '';
+    return '<div class="topic-card' + (t.status==='used'?' used':'') + '">' +
+      '<div class="info"><div class="t">' + esc(t.title) +
+      (t.status==='used' ? '<span class="badge">已写过</span>' : '') +
+      (t.status==='picked' ? '<span class="badge new">选中</span>' : '') +
+      ctxTag + '</div>' +
+      (t.angle ? '<div class="a">' + esc(t.angle) + '</div>' : '') +
+      (t.reason ? '<div class="r">' + esc(t.reason) + '</div>' : '') +
+      '</div>' +
+      (t.status==='used' ? '' : '<button class="primary" data-tid="' + t.id + '">就写这条</button>') +
+      '<button data-del="' + t.id + '" title="删掉这条" style="border:none;background:none;color:var(--muted);font-size:18px;cursor:pointer;padding:6px 8px;line-height:1">×</button>' +
+      '</div>';
+  }).join('') : '<p class="hint" style="margin:0">还没有选题，点上面「生成并保存选题」。</p>';
+  $$('#topicList [data-tid]').forEach(b => b.addEventListener('click', () => pickTopic(+b.dataset.tid)));
+  $$('#topicList [data-del]').forEach(b => b.addEventListener('click', async () => {
+    if(b.dataset.busy) return;
+    b.dataset.busy = '1';
+    const d = await api('/api/boss-topics/' + b.dataset.del, {method: 'DELETE'});
+    if(d.ok){ b.closest('.topic-card').remove(); loadTopicList(); }
+    else delete b.dataset.busy;
+  }));
+}
+async function pickTopic(tid){
+  const d = await post('/api/boss-topics/' + tid + '/pick');
+  if(!d.ok) return;
+  pickedTopic = d.topic;
+  contentId = null; content = null;
+  $('#createResult').classList.add('hide');
+  $('#createRun').style.display = 'none';
+  renderCreateEntry();
+  nav('create');
+}
+
+// ---------- 内容创作 ----------
+function renderCreateEntry(){
+  if(pickedTopic){
+    const ctx = (pickedTopic.context || '').trim();
+    $('#curTopic').innerHTML = '<div style="font-size:17px;font-weight:600">' + esc(pickedTopic.title) + '</div>' +
+      (pickedTopic.angle ? '<div style="font-size:13.5px;color:var(--accent);margin-top:2px">' + esc(pickedTopic.angle) + '</div>' : '') +
+      (ctx ? '<div style="font-size:13px;color:var(--muted);margin-top:4px">🎯 由头：' + esc(ctx) + '（写文案时会带上）</div>' : '');
+    $('#createRun').style.display = 'block';
+  }else{
+    $('#curTopic').innerHTML = '<p class="hint" style="margin:0">还没选。先去「内容选题」挑一条。</p>';
+    $('#createRun').style.display = 'none';
+  }
+}
+function setStep(n, state){
+  const el = $('#c'+n); if(!el) return;
+  el.classList.remove('hide');
+  el.classList.remove('on','done');
+  if(state) el.classList.add(state);
+}
+$('#btnGen').addEventListener('click', generateContent);
+async function generateContent(){
+  if(!pickedTopic || contentId) return;
+  $('#btnGen').disabled = true;
+  const extra = ($('#cExtra')?.value || '').trim();
+  const body = {merchant_id: profile.id, topic_id: pickedTopic.id, extra};
+  const d = await runTask('create', body, $('#cLog'), '正在写，大约 1-2 分钟，别关页面…');
+  $('#btnGen').disabled = false;
+  if(!d) return;
+  afterCreate(d);
+}
+function afterCreate(d){
+  ['1','2','3'].forEach(n => setStep(n, 'done'));
+  $('#cLog').textContent = '';
+  contentId = d.content_id; content = d.result;
+  picked = {}; styleIdx = 0;
+  $('#mTitle').textContent = content.master?.title || '';
+  $('#mBody').textContent = content.master?.body || '';
+  const tags = content.master?.hashtags || [];
+  $('#mTags').innerHTML = tags.length ? '<div class="block"><div class="k">标签</div><div class="tags">' +
+    tags.map(t => '<span>' + esc(t) + '</span>').join('') + '</div></div>' : '';
+  const tips = content.master?.shoot_tips || [];
+  $('#mTipsBlock').classList.toggle('hide', !tips.length);
+  $('#mTips').innerHTML = tips.map(t => '· ' + esc(t)).join('\n');
+  $('#createResult').classList.remove('hide');
+  $('#shipCard').classList.add('hide');
+  $('#shipVideoCard').classList.add('hide');
+  $('#scriptOut').classList.add('hide');
+  $('#videoOut').classList.add('hide');
+  $('#videoLog') && ($('#videoLog').textContent = '');
+  loadCards();
+  profile.quota_left = Math.max(0, (profile.quota_left||1) - 1);
+  renderShopCard();
+  window.scrollTo({top: $('#createResult').offsetTop - 20, behavior:'smooth'});
+}
+
+// ---------- 图文版 ----------
+$('#btnStyle').addEventListener('click', () => { styleIdx = (styleIdx+1) % STYLES.length; loadCards(); });
+async function loadCards(){
+  if(!contentId) return;
+  const st = STYLES[styleIdx];
+  $('#cardsRow').innerHTML = '<p class="hint" style="margin:0"><span class="spin"></span>正在做图（' + st.n + '）…</p>';
+  $('#btnStyle').textContent = '换个样子 · ' + st.n;
+  const d = await post('/api/render-cards', {content_id: contentId, style: st.k});
+  if(!d.ok){
+    $('#cardsRow').innerHTML = (content.cards||[]).map((c,i) =>
+      '<figure><figcaption style="font-size:13.5px;white-space:pre-wrap;text-align:left;background:#fcfcfb;border:1px solid var(--line);border-radius:10px;padding:10px">' +
+      esc(c.text) + '</figcaption></figure>').join('');
+    $('#cardDensity').textContent = '出图暂不可用：' + (d.error||'') + '（卡片文字可以照常复制使用）';
+    return;
+  }
+  $('#cardsRow').innerHTML = d.images.map((im,i) =>
+    '<figure><img src="' + murl(im.url) + '" loading="lazy" alt="配图' + (i+1) + '">' +
+    '<figcaption>' + (i===0?'封面':'第 ' + (i+1) + ' 张') + '</figcaption></figure>').join('');
+  $('#cardDensity').textContent = '共 ' + d.images.length + ' 张，导入时自动带上。';
+}
+$('#btnCopyAll').addEventListener('click', async (e) => {
+  const t = ($('#mTitle').textContent || '') + '\n\n' + ($('#mBody').textContent || '') + '\n\n' +
+    [...$$('#mTags span')].map(x => x.textContent).join(' ');
+  await copyText(t);
+  e.target.textContent = '已复制 ✓';
+  setTimeout(() => e.target.textContent = '复制文案', 1800);
+});
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return; }catch(e){}
+  const ta = document.createElement('textarea');
+  ta.value = t; document.body.appendChild(ta); ta.select();
+  document.execCommand('copy'); ta.remove();
+}
+$('#btnShip').addEventListener('click', () => {
+  PLATFORMS.forEach(p => picked[p.k] = picked[p.k] ?? true);
+  $('#shipVideoCard').classList.add('hide');
+  renderShip();
+  $('#btnAutoPub').style.display = CAPS.publish ? '' : 'none';
+  $('#btnExport').style.display = CAPS.publish ? 'none' : '';
+  $('#shipCard').classList.remove('hide');
+  $('#shipCard').scrollIntoView({behavior:'smooth'});
+});
+$('#btnExport').addEventListener('click', async () => {
+  const out = $('#pubOut');
+  out.classList.remove('hide');
+  out.innerHTML = '<span class="spin"></span>正在打包成品…';
+  const d = await post('/api/export', {content_id: contentId, kind: 'image', style: STYLES[styleIdx].k});
+  if(!d.ok){
+    out.innerHTML = '<span style="color:var(--red)">' + esc(d.error || d.detail || '导出失败') + '</span>';
+    return;
+  }
+  out.innerHTML = '✅ 打包好了（' + d.count + ' 张配图 + copy.txt 文案），开始下载…<br>' +
+    '<span class="hint">手机用户：电脑上解压后用微信「文件传输助手」发到手机即可。</span>';
+  const a = document.createElement('a');
+  a.href = murl(d.url); a.download = d.filename;
+  document.body.appendChild(a); a.click(); a.remove();
+});
+function renderShip(){
+  $('#shipPicks').innerHTML = PLATFORMS.map(p =>
+    '<div class="pick ' + (picked[p.k]?'on':'') + '" data-p="' + p.k + '">' +
+    '<div class="box">' + (picked[p.k]?'✓':'') + '</div><div style="flex:1">' + p.n +
+    '<div style="font-size:13px;color:var(--ink-3)">' +
+    (p.k==='xiaohongshu'?'图文笔记（自动带上配图）':
+     p.k==='douyin'?'图文或视频（自动适配）':
+     p.k==='kuaishou'?'视频，需要先做出视频版':
+     p.k==='channels'?'视频，需要先做出视频版':'老板本人发，给手动指引') +
+    '</div></div></div>'
+  ).join('');
+  $$('#shipPicks .pick').forEach(el => el.addEventListener('click', () => {
+    picked[el.dataset.p] = !picked[el.dataset.p]; renderShip();
+  }));
+}
+$('#btnShipHow').addEventListener('click', () => {
+  const names = PLATFORMS.filter(p => picked[p.k]).map(p => p.n).join('、');
+  $('#shipHow').innerHTML =
+    '<b>要发的平台：</b>' + (names || '（还没勾选）') + '<br>' +
+    '<b>配图：</b>在配图上右键 →「图片另存为」（手机长按保存）<br>' +
+    '<b>文案：</b>点「复制文案」→ 粘到对应 App 的发布框<br>' +
+    '<b>发布：</b>打开 App 点发布就行，发之前自己再读一遍。';
+  $('#shipHow').classList.remove('hide');
+});
+$('#btnAutoPub').addEventListener('click', async () => {
+  const out = $('#pubOut');
+  out.classList.remove('hide');
+  if(!CAPS.publish){
+    out.innerHTML = '这个环境没有自动代发组件，点上面的<b>「⬇ 一键导出成品」</b>拿配图和文案，' +
+      '打开平台 App 直接发，一样快。';
+    return;
+  }
+  out.innerHTML = '<span class="spin"></span>正在检查绑定状态…';
+  const st = await api('/api/channels/status');
+  const chans = (st.ok && st.channels) || {};
+  const targets = PLATFORMS.filter(p => picked[p.k] && chans[p.k] && chans[p.k].loggedIn);
+  const unbound = PLATFORMS.filter(p => picked[p.k] && !(chans[p.k] && chans[p.k].loggedIn)).map(p => p.n);
+  if(!targets.length){
+    out.innerHTML = '<span style="color:var(--red)">要自动发的平台（' + esc(unbound.join('、')||'无') + '）还没绑定。到「我的账号」扫码绑定，或用「手动导入指引」。</span>';
+    return;
+  }
+  const names = targets.map(t => t.n).join('、');
+  if(!confirm('确定现在就把这条内容发布到：' + names + ' 吗？\n发出去马上所有人可见，请先确认内容没问题。')){
+    out.innerHTML = '已取消。也可以手动导入。'; return;
+  }
+  out.innerHTML = '<span class="spin"></span>正在发布到 ' + esc(names) + '…（1-2 分钟，别关页面）';
+  $('#btnAutoPub').disabled = true;
+  const d = await post('/api/publish', {content_id: contentId, platforms: targets.map(t => t.k), exec: true});
+  $('#btnAutoPub').disabled = false;
+  out.innerHTML = Object.entries(d.results||{}).map(([k,r]) =>
+    '<b>' + esc(CH_NAME[k]||k) + '：</b>' + (r.ok ? '✅ 发布成功' : '❌ ' + esc(r.error||'失败'))).join('<br>') +
+    (d.ok ? '<br><b style="color:var(--green)">发好了！打开 App 看看效果。</b>'
+          : '<br><span style="color:var(--red)">有平台没发出去，可以手动发那条。</span>');
+});
+
+// ---------- 视频版 ----------
+let VOICES = [];
+async function loadVoices(){
+  if(VOICES.length) return;
+  const d = await api('/api/voices');
+  VOICES = d.ok ? d.voices : [{k:'xiaoxiao', name:'晓晓（女·亲切）'}];
+  $('#voiceSel').innerHTML = VOICES.map(v => '<option value="' + v.k + '">' + esc(v.name) + '</option>').join('');
+}
+$('#tabImage').addEventListener('click', () => switchTab('image'));
+$('#tabVideo').addEventListener('click', () => switchTab('video'));
+function switchTab(t){
+  $('#tabImage').classList.toggle('on', t==='image');
+  $('#tabVideo').classList.toggle('on', t==='video');
+  $('#paneImage').classList.toggle('hide', t!=='image');
+  $('#paneVideo').classList.toggle('hide', t!=='video');
+  if(t === 'video'){ loadVoices(); loadVideoMats(); }
+}
+async function loadMats(){ await refreshMats(); drawMatGrid(); }
+let matsUsage = null;
+async function refreshMats(){
+  if(!profile) return;
+  const d = await api('/api/materials?merchant_id=' + profile.id);
+  if(d.ok){ mats = d.materials; matsUsage = d.usage || null; }
+}
+function drawMatGrid(){
+  $('#matCount').textContent = mats.length ? ('共 ' + mats.length + ' 条') : '';
+  if(matsUsage && $('#matUsage')){
+    const mb = v => (v / 1024 / 1024).toFixed(1);
+    $('#matUsage').textContent = '空间用量：' + mb(matsUsage.bytes) + ' MB / ' + Math.round(matsUsage.bytes_limit/1024/1024) +
+      ' MB　·　数量：' + matsUsage.count + ' / ' + matsUsage.count_limit + ' 个（满了先删几条再传）';
+  }
+  $('#matGrid').innerHTML = mats.length ? mats.map(m =>
+    '<div class="mat" data-id="' + m.id + '">' +
+    '<div class="th" data-id="' + m.id + '">' +
+    (m.kind==='image' ? '<img src="' + murl(m.url) + '" loading="lazy">' : '<video src="' + murl(m.url) + '" muted></video>') +
+    '<span class="kind">' + (m.kind==='image'?'图片':'视频' + (m.duration ? ' ' + Math.round(m.duration) + 's' : '')) + '</span>' +
+    '</div>' +
+    '<div class="info"><div class="n">' + esc(m.orig_name) + '</div>' +
+    '<input placeholder="拍的是什么？" value="' + esc(m.note||'') + '" data-note="' + m.id + '">' +
+    '<div class="row"><button data-savenote="' + m.id + '">存备注</button><button data-del="' + m.id + '">删除</button></div>' +
+    '</div></div>'
+  ).join('') : '<p class="hint" style="margin:0">还没有素材。传几张店里的实拍，写视频时 AI 好配画面。</p>';
+  $$('#matGrid [data-del]').forEach(b => b.addEventListener('click', async () => {
+    if(!confirm('删除这条素材？')) return;
+    await api('/api/materials/' + b.dataset.del, {method:'DELETE'});
+    await refreshMats(); drawMatGrid();
+  }));
+  $$('#matGrid [data-savenote]').forEach(b => b.addEventListener('click', async () => {
+    const note = document.querySelector('[data-note="' + b.dataset.savenote + '"]').value;
+    await api('/api/materials/' + b.dataset.savenote, {method:'PUT', headers:{'content-type':'application/json'}, body:JSON.stringify({note})});
+    b.textContent = '已存 ✓'; setTimeout(() => b.textContent = '存备注', 1500);
+    await refreshMats();
+  }));
+}
+$('#btnUpload').addEventListener('click', async () => {
+  const files = $('#matFiles').files;
+  if(!files.length){ $('#mLog').innerHTML = '<span style="color:var(--red)">先选文件</span>'; return; }
+  const fd = new FormData();
+  for(const f of files) fd.append('files', f);
+  const notes = $('#matNotes').value.trim();
+  $('#mLog').innerHTML = '<span class="spin"></span>上传中…';
+  const d = await api('/api/materials?merchant_id=' + profile.id + '&notes=' + encodeURIComponent(notes), {method:'POST', body: fd});
+  if(!d.ok){ $('#mLog').innerHTML = '<div class="err">' + esc(d.error||'上传失败') + '</div>'; return; }
+  let msg = '传好了 ' + d.materials.length + ' 条。';
+  if(d.skipped && d.skipped.length){
+    msg += '<br><span style="color:var(--red)">有 ' + d.skipped.length + ' 个没传成：' +
+      d.skipped.map(s => esc(s.name||'') + '（' + esc(s.reason||'') + '）').join('；') + '</span>';
+  }
+  $('#mLog').innerHTML = '<span style="color:var(--green)">' + msg + '</span>';
+  $('#matFiles').value = ''; $('#matNotes').value = '';
+  await refreshMats(); drawMatGrid();
+});
+
+// 视频素材选择（在创作页里勾选）
+function drawVideoMats(){
+  $('#videoMats').innerHTML = mats.length ? '<div class="mat-grid">' + mats.map(m =>
+    '<div class="mat' + (selMats.has(m.id)?' sel':'') + '" data-pick="' + m.id + '" style="cursor:pointer">' +
+    '<div class="th">' +
+    (m.kind==='image' ? '<img src="' + murl(m.url) + '" loading="lazy">' : '<video src="' + murl(m.url) + '" muted></video>') +
+    '<span class="kind">' + (m.kind==='image'?'图片':'视频') + '</span>' +
+    '<span class="selmark">' + (selMats.has(m.id)?'✓':'') + '</span></div>' +
+    '<div class="info"><div class="n">' + esc(m.note || m.orig_name) + '</div></div></div>'
+  ).join('') + '</div>' : '<p class="hint" style="margin:0">素材库是空的，先去「素材库」上传实拍。</p>';
+  $$('#videoMats [data-pick]').forEach(el => el.addEventListener('click', () => {
+    const id = +el.dataset.pick;
+    selMats.has(id) ? selMats.delete(id) : selMats.add(id);
+    el.classList.toggle('sel', selMats.has(id));
+    el.querySelector('.selmark').textContent = selMats.has(id) ? '✓' : '';
+  }));
+}
+async function loadVideoMats(){
+  await refreshMats(); drawVideoMats();
+}
+$('#btnScript').addEventListener('click', async () => {
+  if(!contentId){ $('#vLog').innerHTML = '<span style="color:var(--red)">先生成文案</span>'; return; }
+  if(!selMats.size){ $('#vLog').innerHTML = '<span style="color:var(--red)">先勾选几条素材</span>'; return; }
+  $('#btnScript').disabled = true;
+  const d = await runTask('vscript', {content_id: contentId, material_ids: [...selMats]},
+    $('#vLog'), '正在把文案拆成分镜、匹配素材（约 1 分钟）…');
+  $('#btnScript').disabled = false;
+  if(!d) return;
+  $('#vLog').textContent = '';
+  drawScenes(d.video_script.scenes);
+  $('#scriptOut').classList.remove('hide');
+});
+function drawScenes(scenes){
+  $('#sceneList').innerHTML = scenes.map((s,i) =>
+    '<div class="r"><div class="t">第' + (i+1) + '段</div><div>' +
+    '<div class="say">🔊 ' + esc(s.narration) + '</div>' +
+    '<div class="show">画面：' + esc(s.show) + '</div></div></div>').join('');
+}
+$('#btnReScript').addEventListener('click', () => $('#btnScript').click());
+$('#btnRender').addEventListener('click', async () => {
+  if(!CAPS.video){
+    $('#vLog').innerHTML = '<div class="err">服务器暂时缺视频合成组件（ffmpeg），请联系管理员。文案和分镜不受影响，可以先用。</div>';
+    return;
+  }
+  $('#btnRender').disabled = true;
+  const d = await runTask('render', {content_id: contentId, voice: $('#voiceSel').value},
+    $('#vLog'), '正在配音、剪画面、烧字幕…大约 1-2 分钟，别关页面。');
+  $('#btnRender').disabled = false;
+  if(!d) return;
+  $('#vLog').textContent = '';
+  $('#videoPlayer').src = murl(d.video_url);
+  $('#btnDownload').href = murl(d.video_url);
+  $('#btnDownload').download = 'video_' + contentId + '.mp4';
+  $('#videoOut').classList.remove('hide');
+  $('#videoOut').scrollIntoView({behavior:'smooth'});
+});
+$('#btnShipVideo').addEventListener('click', () => {
+  $('#shipVideoCard').classList.remove('hide');
+  renderVideoShip();
+  $('#btnAutoPubVideo').style.display = CAPS.publish ? '' : 'none';
+  $('#btnExportVideo').style.display = CAPS.publish ? 'none' : '';
+  $('#shipVideoCard').scrollIntoView({behavior:'smooth'});
+});
+$('#btnExportVideo').addEventListener('click', async () => {
+  const out = $('#pubVideoOut');
+  out.classList.remove('hide');
+  out.innerHTML = '<span class="spin"></span>正在检查视频…';
+  const d = await post('/api/export', {content_id: contentId, kind: 'video'});
+  if(!d.ok){
+    out.innerHTML = '<span style="color:var(--red)">' + esc(d.error || d.detail || '导出失败') + '</span>';
+    return;
+  }
+  out.innerHTML = '✅ 视频就绪，开始下载…<br>' +
+    '<span class="hint">传到手机：微信「文件传输助手」发给自己，手机保存后直接在抖音/快手/视频号发布。</span>';
+  const a = document.createElement('a');
+  a.href = murl(d.url); a.download = d.filename;
+  document.body.appendChild(a); a.click(); a.remove();
+});
+let videoPicked = {douyin: true, kuaishou: true, channels: true, xiaohongshu: false, moments: false};
+function renderVideoShip(){
+  const desc = {xiaohongshu:'建议发图文版', douyin:'视频自动发', channels:'视频自动发（需微信扫码绑定）', moments:'手动发'};
+  $('#shipVideoPicks').innerHTML = PLATFORMS.map(p =>
+    '<div class="pick ' + (videoPicked[p.k]?'on':'') + '" data-vp="' + p.k + '">' +
+    '<div class="box">' + (videoPicked[p.k]?'✓':'') + '</div><div style="flex:1">' + p.n +
+    '<div style="font-size:13px;color:var(--ink-3)">' + desc[p.k] + '</div></div></div>'
+  ).join('');
+  $$('#shipVideoPicks [data-vp]').forEach(el => el.addEventListener('click', () => {
+    videoPicked[el.dataset.vp] = !videoPicked[el.dataset.vp]; renderVideoShip();
+  }));
+}
+$('#btnAutoPubVideo').addEventListener('click', async () => {
+  const out = $('#pubVideoOut');
+  out.classList.remove('hide');
+  if(!CAPS.publish){
+    out.innerHTML = '这个环境没有自动代发组件，点上面的<b>「⬇ 一键导出视频」</b>下载视频，' +
+      '传到手机直接发布，一样快。';
+    return;
+  }
+  out.innerHTML = '<span class="spin"></span>正在检查绑定状态…';
+  const st = await api('/api/channels/status');
+  const chans = (st.ok && st.channels) || {};
+  const targets = PLATFORMS.filter(p => videoPicked[p.k] && chans[p.k] && chans[p.k].loggedIn);
+  const unbound = PLATFORMS.filter(p => videoPicked[p.k] && !(chans[p.k] && chans[p.k].loggedIn)).map(p => p.n);
+  if(!targets.length){
+    out.innerHTML = '<span style="color:var(--red)">要自动发的平台（' + esc(unbound.join('、')||'无') + '）还没绑定。到「我的账号」扫码绑定，或用「手动发布指引」。</span>';
+    return;
+  }
+  const names = targets.map(t => t.n).join('、');
+  if(!confirm('确定现在就把视频发布到：' + names + ' 吗？\n发出去马上所有人可见，建议先点开视频自己看一遍。')){
+    out.innerHTML = '已取消。也可以手动发布。'; return;
+  }
+  out.innerHTML = '<span class="spin"></span>正在上传发布到 ' + esc(names) + '…（视频上传要 2-4 分钟，别关页面）';
+  $('#btnAutoPubVideo').disabled = true;
+  const d = await post('/api/publish', {content_id: contentId, platforms: targets.map(t => t.k), exec: true});
+  $('#btnAutoPubVideo').disabled = false;
+  out.innerHTML = Object.entries(d.results||{}).map(([k,r]) =>
+    '<b>' + esc(CH_NAME[k]||k) + '：</b>' + (r.ok ? '✅ 发布成功' : '❌ ' + esc(r.error||'失败'))).join('<br>') +
+    (d.ok ? '<br><b style="color:var(--green)">发好了！打开 App 看看效果。</b>'
+          : '<br><span style="color:var(--red)">有平台没发出去，可以按手动指引发。</span>');
+});
+$('#btnShipVideoHow').addEventListener('click', () => {
+  $('#shipVideoHow').innerHTML =
+    '<b>视频文件已经做好了。</b><br>' +
+    '1. 点「下载视频到电脑」，传到手机（微信文件传输助手/数据线都行）<br>' +
+    '2. 打开抖音 / 快手 / 微信视频号 → 发布 → 选这条视频（快手和视频号都只收视频）<br>' +
+    '3. 标题和标签：点「复制文案」粘进去<br>' +
+    '4. 小红书建议发图文版（回上一个卡片选「定稿，一键导入」）；朋友圈发视频先用「收藏」中转';
+  $('#shipVideoHow').classList.remove('hide');
+});
+
+// ---------- 素材库（视频预览点击播放） ----------
+document.addEventListener('click', e => {
+  const v = e.target.closest('.mat .th video');
+  if(v){ v.paused ? v.play() : v.pause(); }
+});
+
+// ---------- 内容历史 ----------
+async function loadHistory(){
+  if(!profile) return;
+  const d = await api('/api/contents?merchant_id=' + profile.id + '&limit=50');
+  if(!d.ok){ $('#historyList').innerHTML = '<p class="hint">加载失败</p>'; return; }
+  const items = (d.contents||[]).filter(c => c.skill === 'boss-create');
+  $('#historyList').innerHTML = items.length ? items.map(c => {
+    let p = {};
+    try{ p = JSON.parse(c.payload); }catch(e){}
+    const m = p.master || {};
+    return '<div class="topic-card" style="align-items:flex-start"><div class="info">' +
+      '<div class="t">' + esc(m.title || c.topic) + '</div>' +
+      '<div class="r">' + esc(c.created_at) + (p.video_url ? ' · <a href="' + murl(p.video_url) + '" target="_blank">看视频</a>' : '') + '</div>' +
+      '<div class="r" style="white-space:pre-wrap;margin-top:6px">' + esc((m.body||'').slice(0, 120)) + ((m.body||'').length>120?'…':'') + '</div>' +
+      '</div></div>';
+  }).join('') : '<p class="hint" style="margin:0">还没有写过内容。</p>';
+}
+
+// ---------- 我的账号 ----------
+let accPoll = null;
+$('#btnAccBack')?.remove();
+async function loadAccount(){
+  const d = await api('/api/channels/status');
+  if(d.publish_available === false || !CAPS.publish){
+    $('#capsNote').classList.remove('hide');
+    $('#capsNote').innerHTML = '<div style="margin-bottom:10px;line-height:1.7">' +
+      '<b>这里的账号页是「自动代发」用的。</b>当前环境（网页版）不需要绑定也能用：做好的内容点<b>「⬇ 一键导出」</b>，' +
+      '下载配图/视频 + 复制文案，打开抖音、小红书、快手、视频号的 App 直接发。<br>' +
+      '<span class="hint">想在电脑上全自动代发（绑定后一键发多平台），需要在你自己电脑上运行本地版——自动代发用的是你本机的浏览器登录态。</span></div>';
+    $('#chList').innerHTML = '';
+    return;
+  }
+  if(!d.ok){ $('#chList').innerHTML = '<p class="hint">' + esc(d.error||'获取失败') + '</p>'; return; }
+  $('#chList').innerHTML = Object.entries(d.channels).map(([k,c]) =>
+    '<div class="pick" style="cursor:default;margin-bottom:10px">' +
+    '<div class="box" style="' + (c.loggedIn?'background:var(--accent);border-color:var(--accent)':'') + '">' + (c.loggedIn?'✓':'') + '</div>' +
+    '<div style="flex:1">' + esc(c.label) +
+    '<div style="font-size:13px;color:var(--ink-3)">' +
+    (c.loggedIn ? ('已绑定' + (c.name ? '：' + esc(c.name) : '')) : (c.error ? ('检查失败：' + esc(c.error)) : '未绑定')) +
+    '</div></div>' +
+    (c.loggedIn ? '' : '<button data-bind="' + k + '">去绑定</button>') +
+    '</div>'
+  ).join('');
+  $$('#chList [data-bind]').forEach(b => b.addEventListener('click', () => startBind(b.dataset.bind)));
+}
+async function startBind(platform){
+  if(accPoll){ clearInterval(accPoll); accPoll = null; }
+  $('#accLog').textContent = '';
+  const d = await post('/api/channels/' + platform + '/login');
+  if(!d.ok){ $('#accLog').innerHTML = '<div class="err">' + esc(d.error||'无法启动登录') + '</div>'; return; }
+  const name = CH_NAME[platform] || platform;
+  $('#bindArea').classList.remove('hide');
+  $('#bindArea').innerHTML =
+    '<h3 style="margin-top:18px">绑定' + name + '</h3>' +
+    '<p class="sub" style="margin-bottom:10px">打开' + name + ' App，扫下面这个二维码（扫一次就行，以后不用再扫）</p>' +
+    '<div style="text-align:center"><img id="qrImg" src="' + d.qr_url + '?t=' + Date.now() + '" alt="二维码" ' +
+    'style="width:240px;border:1px solid var(--line);border-radius:12px;background:#fff"></div>' +
+    '<p class="hint" id="bindMsg" style="text-align:center"><span class="spin"></span>等待扫码…二维码 3 分钟内有效</p>';
+  accPoll = setInterval(async () => {
+    const s = await api('/api/channels/' + platform + '/login-status');
+    if(s.state === 'scanned'){ $('#bindMsg').innerHTML = '<span class="spin"></span>扫码成功，请在手机上点确认…'; return; }
+    if(s.state === 'success'){
+      clearInterval(accPoll); accPoll = null;
+      $('#bindArea').classList.add('hide');
+      $('#accLog').innerHTML = '<span style="color:var(--green)">' + name + '绑定成功，以后可以直接自动发了</span>';
+      loadAccount(); return;
+    }
+    if(s.state === 'expired' || s.state === 'error' || (!s.proc_alive && s.state !== 'running')){
+      clearInterval(accPoll); accPoll = null;
+      $('#bindMsg').innerHTML = '<span style="color:var(--red)">' + esc(s.message || '登录没有完成') + '</span>　<button id="btnRetryBind">重新扫码</button>';
+      $('#btnRetryBind').addEventListener('click', () => startBind(platform));
+      return;
+    }
+  }, 2000);
+}
+
+// ---------- 营销海报 ----------
+let POSTER_TPLS = null, POSTER_CAT = '全部', POSTER_CUR = null;
+
+async function initPoster(){
+  if(POSTER_TPLS === null){
+    try{
+      const d = await api('/api/poster/templates');
+      POSTER_TPLS = d.templates || [];
+      if(!d.available) $('#posterPick').insertAdjacentHTML('beforeend',
+        '<p class="hint" style="color:var(--red)">海报组件缺失，请联系管理员。</p>');
+    }catch(e){ POSTER_TPLS = []; }
+  }
+  renderPosterCats(); renderPosterGrid();
+}
+
+function renderPosterCats(){
+  const cats = [...new Set(['全部', ...POSTER_TPLS.map(t => t.category)])];
+  $('#posterCats').innerHTML = cats.map(c =>
+    '<button class="' + (c === POSTER_CAT ? 'on' : '') + '" data-pc="' + esc(c) + '">' + esc(c) + '</button>').join('');
+  $$('#posterCats [data-pc]').forEach(b => b.addEventListener('click', () => { POSTER_CAT = b.dataset.pc; renderPosterCats(); renderPosterGrid(); }));
+}
+
+function renderPosterGrid(){
+  const list = POSTER_TPLS.filter(t => POSTER_CAT === '全部' || t.category === POSTER_CAT);
+  $('#posterTplGrid').innerHTML = list.map(t => {
+    const [c1, c2] = t.swatch || ['#eee', '#333'];
+    return '<div class="pick" data-pt="' + esc(t.id) + '" style="flex-direction:column;align-items:flex-start;gap:6px">' +
+      '<div style="width:100%;height:64px;border-radius:10px;background:linear-gradient(120deg,' + esc(c1) + ',' + esc(c2) + ')"></div>' +
+      '<div style="font-weight:600">' + esc(t.name) + '</div>' +
+      '<div style="font-size:12.5px;color:var(--ink-3)">' + esc(t.desc || '') + '</div></div>';
+  }).join('') || '<p class="hint">这个分类暂时没有模板。</p>';
+  $$('#posterTplGrid [data-pt]').forEach(el => el.addEventListener('click', () => openPosterForm(el.dataset.pt)));
+}
+
+function openPosterForm(tid){
+  POSTER_CUR = POSTER_TPLS.find(t => t.id === tid); if(!POSTER_CUR) return;
+  $('#posterPick').classList.add('hide');
+  $('#posterForm').classList.remove('hide');
+  $('#posterTplName').textContent = POSTER_CUR.name;
+  $('#posterTplDesc').textContent = POSTER_CUR.desc || '';
+  $('#posterResult').innerHTML = ''; $('#posterLog').classList.add('hide');
+  $('#posterQr').value = '';
+  $('#posterFields').innerHTML = (POSTER_CUR.fields || []).map(f => {
+    const id = 'pf_' + f.key;
+    const def = esc(f.default || '');
+    if(f.type === 'textarea')
+      return '<label>' + esc(f.label) + '</label><textarea id="' + id + '" rows="2" placeholder="' + def + '"></textarea>';
+    return '<label>' + esc(f.label) + (f.required ? ' <span style="color:var(--red)">*</span>' : '') + '</label>' +
+      '<input id="' + id + '" placeholder="' + def + '" value="' + (f.required ? def : '') + '">';
+  }).join('');
+  const shopEl = $('#pf_shop');                     // 店名自动带入当前档案
+  if(shopEl && !shopEl.value && profile && profile.name) shopEl.value = profile.name;
+  window.scrollTo({top: 0});
+}
+
+$('#btnPosterBack').addEventListener('click', () => {
+  $('#posterForm').classList.add('hide'); $('#posterPick').classList.remove('hide');
+});
+
+$('#btnPosterGo').addEventListener('click', async () => {
+  if(!POSTER_CUR) return;
+  const out = $('#posterLog'); out.classList.remove('hide');
+  const btn = $('#btnPosterGo'); btn.disabled = true;
+  out.innerHTML = '<span class="spin"></span>正在出图，几秒钟…';
+  try{
+    const vals = {};
+    (POSTER_CUR.fields || []).forEach(f => { vals[f.key] = ($('#pf_' + f.key) || {}).value || ''; });
+    const fd = new FormData();
+    fd.append('template_id', POSTER_CUR.id);
+    fd.append('values', JSON.stringify(vals));
+    const qr = $('#posterQr').files[0];
+    if(qr) fd.append('qr_image', qr);
+    const r = await fetch('/api/poster/render', {method: 'POST', headers: authHeaders(), body: fd});
+    const d = await r.json().catch(() => ({ok: false, error: '服务没有响应'}));
+    if(!r.ok || !d.ok) throw new Error(d.detail || d.error || ('HTTP ' + r.status));
+    out.innerHTML = '<span style="color:var(--green)">出好了，长按或右键保存即可。</span>';
+    $('#posterResult').innerHTML =
+      '<img src="' + murl(d.url + '?t=' + Date.now()) + '" style="max-width:420px;width:100%;border-radius:12px;border:1px solid var(--line)">' +
+      '<div class="actions" style="margin-top:10px"><a href="' + esc(murl(d.url)) + '" download="poster.png" style="display:inline-block;padding:11px 26px;border-radius:11px;background:var(--accent);color:#fff;text-decoration:none;font-weight:600">⬇ 下载原图</a></div>';
+  }catch(e){
+    out.innerHTML = '<span style="color:var(--red)">' + esc(e.message || String(e)) + '</span>';
+  }finally{ btn.disabled = false; }
+});
+
+boot();
+</script>
+</body>
+</html>
